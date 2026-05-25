@@ -1,5 +1,6 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://tamilinai-api.onrender.com";
 
+
 export type AdminUser = {
   id: string;
   name: string;
