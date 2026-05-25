@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://tamilinai-api.onrender.com";
 
 export type AdminUser = {
   id: string;
