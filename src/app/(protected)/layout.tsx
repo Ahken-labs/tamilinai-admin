@@ -12,7 +12,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     } else {
       setReady(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!ready) {

@@ -1,0 +1,302 @@
+import type { SVGProps } from "react";
+
+type IconProps = SVGProps<SVGSVGElement>;
+
+// ─── Raw logo mark (fill="currentColor", size via prop) ───────────────────────
+export function InaiMarkIcon({ size = 24, className = "", ...props }: { size?: number } & IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M23.3799 4.81556C22.9827 3.87651 22.4144 3.03322 21.6906 2.30943C20.9668 1.58584 20.1237 1.01746 19.1844 0.620249C18.2117 0.208678 17.1789 0 16.1149 0C15.051 0 14.0182 0.208678 13.0452 0.620249C12.1061 1.01746 11.263 1.58584 10.5393 2.30943C9.81546 3.03322 9.24708 3.87651 8.84988 4.81556C8.4383 5.78853 8.22963 6.82115 8.22963 7.88529V8.22963H7.88529C6.82135 8.22963 5.78853 8.4383 4.81556 8.84968C3.87651 9.24688 3.03342 9.81546 2.30963 10.5391C1.58584 11.2628 1.01746 12.1061 0.620249 13.0452C0.208678 14.0182 0 15.0508 0 16.1147C0 17.1787 0.208678 18.2115 0.620249 19.1844C1.01746 20.1235 1.58584 20.9668 2.30963 21.6906C3.03342 22.4142 3.87651 22.9825 4.81556 23.3798C5.78853 23.7913 6.82135 24 7.88529 24H21.9751C22.9522 24 23.7698 23.3045 23.9589 22.3826C23.9657 22.3497 23.9715 22.3166 23.9767 22.2831C23.9818 22.2496 23.986 22.2159 23.9896 22.1817C23.9966 22.1139 24 22.0449 24 21.9751V7.88529C24 6.82115 23.7913 5.78853 23.3799 4.81556ZM7.88529 21.5461C4.89037 21.5461 2.45387 19.1096 2.45387 16.1147C2.45387 13.1198 4.89037 10.6835 7.88529 10.6835H8.22963V18.8682C8.22963 19.5669 8.37227 20.2448 8.65377 20.8832C8.75531 21.1134 8.87302 21.3347 9.00668 21.5461H7.88529ZM16.4599 18.8682C16.4599 20.3449 15.1846 21.5461 13.617 21.5461H13.5264C11.9589 21.5461 10.6835 20.2707 10.6835 18.7032V10.6835H16.4599V18.8682ZM21.5461 21.5461H18.1369C18.2703 21.3347 18.3882 21.1134 18.4898 20.8832C18.7711 20.2448 18.9137 19.5669 18.9137 18.8682V10.6913C20.3834 10.7994 21.5461 12.0295 21.5461 13.5264V21.5461ZM21.5461 9.05516C20.7625 8.55461 19.8601 8.27072 18.9137 8.23402V7.8402C18.9137 7.43202 18.8497 7.02903 18.7236 6.64239L18.7168 6.64459C18.3601 5.54833 17.3285 4.75372 16.1149 4.75372C14.6065 4.75372 13.3794 5.98085 13.3794 7.48928C13.3794 7.74584 13.4149 7.99402 13.4813 8.22963H10.6835V7.88529C10.6835 4.89037 13.12 2.45387 16.1149 2.45387C19.1098 2.45387 21.5461 4.89037 21.5461 7.88529V9.05516Z" fill="currentColor"/>
+    </svg>
+  );
+}
+
+// ─── Social icons ─────────────────────────────────────────────────────────────
+export function FacebookIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+
+export function InstagramIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+    </svg>
+  );
+}
+
+export function WhatsAppIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  );
+}
+
+export function XTwitterIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  );
+}
+
+// ─── UI utility icons ─────────────────────────────────────────────────────────
+export function ArrowRightIcon({ className = "w-4 h-4", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className} {...props}>
+      <path d="M3 8H13M9 4L13 8L9 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+export function ExternalArrowIcon({ className = "w-3 h-3", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 12 12" fill="none" className={className} {...props}>
+      <path d="M2.5 9.5L9.5 2.5M9.5 2.5H5M9.5 2.5V7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+export function ChevronDownIcon({ className = "w-4 h-4", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className} {...props}>
+      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+export function MailIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
+  );
+}
+
+export function ShieldCheckIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <polyline points="9,12 11,14 15,10"/>
+    </svg>
+  );
+}
+
+export function LockClosedIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  );
+}
+
+export function UsersGroupIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  );
+}
+
+export function ForwardArrowIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M5 12H19M13 6L19 12L13 18"/>
+    </svg>
+  );
+}
+
+export function Logo({ className = "w-5 lg:w-6 h-5 lg:h-6 shrink-0", ...props }: IconProps) {
+  return (
+    <div className="flex w-9 lg:w-10 h-9 lg:h-10 items-center justify-center rounded-[20px] bg-[#B31B38] shrink-0 pt-[7px] pb-[9px] pr-[9px] pl-[7px]">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+        <path d="M23.3799 4.81556C22.9827 3.87651 22.4144 3.03322 21.6906 2.30943C20.9668 1.58584 20.1237 1.01746 19.1844 0.620249C18.2117 0.208678 17.1789 0 16.1149 0C15.051 0 14.0182 0.208678 13.0452 0.620249C12.1061 1.01746 11.263 1.58584 10.5393 2.30943C9.81546 3.03322 9.24708 3.87651 8.84988 4.81556C8.4383 5.78853 8.22963 6.82115 8.22963 7.88529V8.22963H7.88529C6.82135 8.22963 5.78853 8.4383 4.81556 8.84968C3.87651 9.24688 3.03342 9.81546 2.30963 10.5391C1.58584 11.2628 1.01746 12.1061 0.620249 13.0452C0.208678 14.0182 0 15.0508 0 16.1147C0 17.1787 0.208678 18.2115 0.620249 19.1844C1.01746 20.1235 1.58584 20.9668 2.30963 21.6906C3.03342 22.4142 3.87651 22.9825 4.81556 23.3798C5.78853 23.7913 6.82135 24 7.88529 24H21.9751C22.9522 24 23.7698 23.3045 23.9589 22.3826C23.9657 22.3497 23.9715 22.3166 23.9767 22.2831C23.9818 22.2496 23.986 22.2159 23.9896 22.1817C23.9966 22.1139 24 22.0449 24 21.9751V7.88529C24 6.82115 23.7913 5.78853 23.3799 4.81556ZM7.88529 21.5461C4.89037 21.5461 2.45387 19.1096 2.45387 16.1147C2.45387 13.1198 4.89037 10.6835 7.88529 10.6835H8.22963V18.8682C8.22963 19.5669 8.37227 20.2448 8.65377 20.8832C8.75531 21.1134 8.87302 21.3347 9.00668 21.5461H7.88529ZM16.4599 18.8682C16.4599 20.3449 15.1846 21.5461 13.617 21.5461H13.5264C11.9589 21.5461 10.6835 20.2707 10.6835 18.7032V10.6835H16.4599V18.8682ZM21.5461 21.5461H18.1369C18.2703 21.3347 18.3882 21.1134 18.4898 20.8832C18.7711 20.2448 18.9137 19.5669 18.9137 18.8682V10.6913C20.3834 10.7994 21.5461 12.0295 21.5461 13.5264V21.5461ZM21.5461 9.05516C20.7625 8.55461 19.8601 8.27072 18.9137 8.23402V7.8402C18.9137 7.43202 18.8497 7.02903 18.7236 6.64239L18.7168 6.64459C18.3601 5.54833 17.3285 4.75372 16.1149 4.75372C14.6065 4.75372 13.3794 5.98085 13.3794 7.48928C13.3794 7.74584 13.4149 7.99402 13.4813 8.22963H10.6835V7.88529C10.6835 4.89037 13.12 2.45387 16.1149 2.45387C19.1098 2.45387 21.5461 4.89037 21.5461 7.88529V9.05516Z" fill="white" />
+      </svg>
+    </div>
+  );
+}
+
+export function FlowerIcon({ className = "w-6 h-12", color = "white", ...props }: IconProps & { color?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 37 72" fill="none" className={className} {...props}>
+      <path fillRule="evenodd" clipRule="evenodd" d="M15.1539 21.1415C19.2603 18.167 21.2297 14.7221 21.0621 10.8069C20.8945 6.89184 18.6234 3.28952 14.249 0C10.1427 2.97465 8.17325 6.41954 8.34078 10.3346C8.50854 14.2498 10.7794 17.8521 15.1539 21.1415Z" fill={color} />
+      <path fillRule="evenodd" clipRule="evenodd" d="M20.4285 47.2293C16.1099 47.0691 12.3049 48.8469 9.01444 52.5623C9.16412 52.7266 9.31572 52.887 9.46659 53.0447C9.46575 53.0458 9.4645 53.0466 9.46366 53.0477L9.48417 53.0633C12.977 56.7081 16.7892 58.6081 20.9226 58.7615C23.7599 58.8668 26.3749 58.1356 28.7683 56.5682C29.0109 56.7892 29.2525 57.0238 29.4939 57.2723C31.9035 59.7656 31.8737 62.1231 30.8611 63.8055C29.7493 65.6525 27.0623 67.326 22.992 67.326V71.9998C28.2603 71.9998 32.7031 69.8066 34.865 66.2146C37.1248 62.4591 36.5138 57.8087 32.8504 54.0203L32.8455 54.0154C32.6637 53.8283 32.481 53.6472 32.2976 53.4715C32.3105 53.457 32.3239 53.443 32.3367 53.4285C28.717 49.4564 24.7474 47.3898 20.4285 47.2293Z" fill={color} />
+      <path fillRule="evenodd" clipRule="evenodd" d="M20.6502 45.6061C19.5686 40.6789 17.1157 37.167 13.2917 35.0705C9.46744 32.974 5.03689 32.7123 0 34.2854C1.08159 39.2128 3.53449 42.7247 7.35848 44.8212C11.1827 46.9177 15.6133 47.1792 20.6502 45.6061Z" fill={color} />
+      <path fillRule="evenodd" clipRule="evenodd" d="M14.1774 33.7422C15.9238 29.18 15.6448 25.1636 13.34 21.6929C11.0355 18.222 7.16641 15.9912 1.73255 15.0002C-0.0137863 19.5624 0.265431 23.5789 2.56997 27.0496C4.8745 30.5203 8.74382 32.7512 14.1774 33.7422Z" fill={color} />
+    </svg>
+  );
+}
+
+export function TrustVerifiedIcon({ className = "shrink-0", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M8.38086 12.0001L10.7909 14.4201L15.6209 9.58008" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10.7509 2.44982C11.4409 1.85982 12.5709 1.85982 13.2709 2.44982L14.8509 3.80982C15.1509 4.06982 15.7109 4.27982 16.1109 4.27982H17.8109C18.8709 4.27982 19.7409 5.14982 19.7409 6.20982V7.90982C19.7409 8.29982 19.9509 8.86982 20.2109 9.16982L21.5709 10.7498C22.1609 11.4398 22.1609 12.5698 21.5709 13.2698L20.2109 14.8498C19.9509 15.1498 19.7409 15.7098 19.7409 16.1098V17.8098C19.7409 18.8698 18.8709 19.7398 17.8109 19.7398H16.1109C15.7209 19.7398 15.1509 19.9498 14.8509 20.2098L13.2709 21.5698C12.5809 22.1598 11.4509 22.1598 10.7509 21.5698L9.17086 20.2098C8.87086 19.9498 8.31086 19.7398 7.91086 19.7398H6.18086C5.12086 19.7398 4.25086 18.8698 4.25086 17.8098V16.0998C4.25086 15.7098 4.04086 15.1498 3.79086 14.8498L2.44086 13.2598C1.86086 12.5698 1.86086 11.4498 2.44086 10.7598L3.79086 9.16982C4.04086 8.86982 4.25086 8.30982 4.25086 7.91982V6.19982C4.25086 5.13982 5.12086 4.26982 6.18086 4.26982H7.91086C8.30086 4.26982 8.87086 4.05982 9.17086 3.79982L10.7509 2.44982Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function TrustPrivacyIcon({ className = "shrink-0", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M20.9099 11.1198C20.9099 16.0098 17.3599 20.5898 12.5099 21.9298C12.1799 22.0198 11.8198 22.0198 11.4898 21.9298C6.63984 20.5898 3.08984 16.0098 3.08984 11.1198V6.72979C3.08984 5.90979 3.70986 4.97979 4.47986 4.66979L10.0498 2.38982C11.2998 1.87982 12.7098 1.87982 13.9598 2.38982L19.5298 4.66979C20.2898 4.97979 20.9199 5.90979 20.9199 6.72979L20.9099 11.1198Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 12.69L10.61 14.3L14.91 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function GlobeIcon({ className = "w-4 h-4", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 12H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ChevronIcon({ open, className = "w-4 h-3.5 shrink-0 transition-transform duration-200", strokeWidth = "2", stroke = "#222", ...props }: { open: boolean } & IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" className={`${className} ${open ? "rotate-180" : ""}`} aria-hidden="true" {...props}>
+      <path d="M13.2801 5.9668L8.93343 10.3135C8.42009 10.8268 7.58009 10.8268 7.06676 10.3135L2.72009 5.9668" stroke={stroke} strokeWidth={strokeWidth} strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function TamilLanguageIcon({ className = "w-6 h-6 shrink-0", color = "#222222", ...props }: IconProps & { color?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M22.2437 22L17.232 12L12.2202 22M13.5362 19.3742H20.9277" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 15C2 18.87 5.13 22 9 22L7.95 20.25" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 9C22 5.13 18.87 2 15 2L16.05 3.75" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6.21282 2.17939C6.21282 2.17939 9.64319 1.50768 9.64319 7.35371C9.64319 9.39815 8.58874 12 5.91628 12C2.89651 12 1.19435 7.35323 2.37992 7.35323C3.56548 7.35323 11.3555 7.35323 11.3555 7.35323M11.4393 2V12M7.68843 3.72287C7.68843 4.57755 6.99558 5.27041 6.1409 5.27041C5.28622 5.27041 4.59336 4.57755 4.59336 3.72287C4.59336 2.86819 5.28622 2.17534 6.1409 2.17534C6.99558 2.17534 7.68843 2.86819 7.68843 3.72287Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function StepProfileIcon({ className = "w-6 h-6", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" className={className} {...props}>
+      <path d="M20.1979 21.3C20.0812 21.2833 19.9312 21.2833 19.7979 21.3C16.8646 21.2 14.5312 18.8 14.5312 15.85C14.5312 12.8333 16.9646 10.3833 19.9979 10.3833C23.0146 10.3833 25.4646 12.8333 25.4646 15.85C25.4479 18.8 23.1312 21.2 20.1979 21.3Z" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M31.2297 32.3001C28.263 35.0168 24.3297 36.6668 19.9963 36.6668C15.663 36.6668 11.7297 35.0168 8.763 32.3001C8.92967 30.7334 9.92967 29.2001 11.713 28.0001C16.2797 24.9668 23.7463 24.9668 28.2797 28.0001C30.063 29.2001 31.063 30.7334 31.2297 32.3001Z" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20 36.6667C29.2047 36.6667 36.6666 29.2048 36.6666 20C36.6666 10.7953 29.2047 3.33337 20 3.33337C10.7952 3.33337 3.33331 10.7953 3.33331 20C3.33331 29.2048 10.7952 36.6667 20 36.6667Z" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function StepPreferencesIcon({ className = "w-6 h-6", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" className={className} {...props}>
+      <path d="M20.6224 14.7998H29.3724" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10.6459 14.7998L11.8959 16.0498L15.6459 12.2998" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20.6224 26.4663H29.3724" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10.6459 26.4663L11.8959 27.7163L15.6459 23.9663" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.0079 36.6667H25.0079C33.3412 36.6667 36.6745 33.3334 36.6745 25V15C36.6745 6.66671 33.3412 3.33337 25.0079 3.33337H15.0079C6.67452 3.33337 3.34119 6.66671 3.34119 15V25C3.34119 33.3334 6.67452 36.6667 15.0079 36.6667Z" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function StepMatchIcon({ className = "w-6 h-6", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" className={className} {...props}>
+      <path d="M23.3301 31.6669C23.3301 27.985 18.8529 25.0002 13.3301 25.0002C7.80723 25.0002 3.33008 27.985 3.33008 31.6669M13.3301 20.0002C9.64818 20.0002 6.66341 17.0154 6.66341 13.3335C6.66341 9.65164 9.64818 6.66687 13.3301 6.66687C17.012 6.66687 19.9967 9.65164 19.9967 13.3335C19.9967 17.0154 17.012 20.0002 13.3301 20.0002Z" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M31.6602 18.4192C30.549 15.8112 26.6602 16.089 26.6602 19.4224C26.6602 22.7557 31.6602 25.5334 31.6602 25.5334C31.6602 25.5334 36.6602 22.7557 36.6602 19.4224C36.6602 16.089 32.7713 15.8112 31.6602 18.4192Z" stroke="#222222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function StepFamilyIcon({ className = "w-6 h-6", strokeWidth = "2.5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" className={className} {...props}>
+      <path d="M30.0074 11.9333C29.9074 11.9166 29.7907 11.9166 29.6907 11.9333C27.3907 11.8499 25.5574 9.96659 25.5574 7.63325C25.5574 5.24992 27.474 3.33325 29.8574 3.33325C32.2407 3.33325 34.1574 5.26659 34.1574 7.63325C34.1407 9.96659 32.3074 11.8499 30.0074 11.9333Z" stroke="#222222" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M28.2896 24.0669C30.573 24.4502 33.0896 24.0502 34.8563 22.8669C37.2063 21.3002 37.2063 18.7335 34.8563 17.1669C33.073 15.9835 30.523 15.5835 28.2396 15.9835" stroke="#222222" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.95213 11.9333C10.0521 11.9166 10.1688 11.9166 10.2688 11.9333C12.5688 11.8499 14.4021 9.96659 14.4021 7.63325C14.4021 5.24992 12.4855 3.33325 10.1021 3.33325C7.71879 3.33325 5.80212 5.26659 5.80212 7.63325C5.81879 9.96659 7.65213 11.8499 9.95213 11.9333Z" stroke="#222222" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11.6704 24.0669C9.38702 24.4502 6.87035 24.0502 5.10369 22.8669C2.75369 21.3002 2.75369 18.7335 5.10369 17.1669C6.88702 15.9835 9.43702 15.5835 11.7203 15.9835" stroke="#222222" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20.0021 24.3837C19.9021 24.367 19.7855 24.367 19.6855 24.3837C17.3855 24.3004 15.5521 22.417 15.5521 20.0837C15.5521 17.7004 17.4688 15.7837 19.8521 15.7837C22.2355 15.7837 24.1521 17.717 24.1521 20.0837C24.1355 22.417 22.3021 24.317 20.0021 24.3837Z" stroke="#222222" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.1531 29.634C12.8031 31.2006 12.8031 33.7673 15.1531 35.334C17.8198 37.1173 22.1865 37.1173 24.8531 35.334C27.2031 33.7673 27.2031 31.2006 24.8531 29.634C22.2031 27.8673 17.8198 27.8673 15.1531 29.634Z" stroke="#222222" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function TamilLetterIcon({ className = "w-6 h-6", stroke = "black", ...props }: SVGProps<SVGSVGElement> & { stroke?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <circle cx="10.8048" cy="5.7211" r="2.965" stroke={stroke} strokeWidth="1.44463" />
+      <path d="M10.9427 2.76388C10.9427 2.76388 17.5151 1.4769 17.5151 12.6776C17.5151 16.5946 15.4948 21.5797 10.3745 21.5797C4.58877 21.5797 1.32751 12.6767 3.599 12.6767C5.87048 12.6767 20.7957 12.6767 20.7957 12.6767M20.9564 2.42017V21.5797" stroke={stroke} strokeWidth="1.44463" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CommunityIcon({ className = "w-6 h-6", stroke = "#222222", ...props }: SVGProps<SVGSVGElement> & { stroke?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M14 16C14 17.77 13.23 19.37 12 20.46C10.94 21.42 9.54 22 8 22C4.69 22 2 19.31 2 16C2 13.24 3.88 10.9 6.42 10.21C7.11 11.95 8.59 13.29 10.42 13.79C10.92 13.93 11.45 14 12 14C12.55 14 13.08 13.93 13.58 13.79C13.85 14.47 14 15.22 14 16Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 8C18 8.78 17.85 9.53 17.58 10.21C16.89 11.95 15.41 13.29 13.58 13.79C13.08 13.93 12.55 14 12 14C11.45 14 10.92 13.93 10.42 13.79C8.59 13.29 7.11 11.95 6.42 10.21C6.15 9.53 6 8.78 6 8C6 4.69 8.69 2 12 2C15.31 2 18 4.69 18 8Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 16C22 19.31 19.31 22 16 22C14.46 22 13.06 21.42 12 20.46C13.23 19.37 14 17.77 14 16C14 15.22 13.85 14.47 13.58 13.79C15.41 13.29 16.89 11.95 17.58 10.21C20.12 10.9 22 13.24 22 16Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function UnionDesignIcon({ className = "h-[460px] w-auto md:h-[640px] lg:h-[744px]", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 399 744" fill="none" className={className} {...props}>
+      <path fillRule="evenodd" clipRule="evenodd" d="M38.0483 60.3148C59.3082 80.0865 59.3097 112.143 38.0504 131.915C28.9346 140.393 17.3882 145.231 5.49802 146.439L48.86 186.765L71.7078 165.517C86.1043 152.129 109.445 152.131 123.841 165.519C138.237 178.907 138.238 200.614 123.843 214.002C109.446 227.391 86.1043 227.391 71.7078 214.002L48.8663 192.76L2.93182 235.46L49.0085 278.311L71.5357 257.361C85.9736 243.933 109.384 243.934 123.822 257.361C138.259 270.788 138.257 292.558 123.82 305.985L101.293 326.935L146.403 368.888L192.327 326.178L169.488 304.938C155.091 291.549 155.091 269.841 169.488 256.452C183.884 243.064 207.224 243.066 221.621 256.454C236.017 269.842 236.018 291.549 221.623 304.938L198.775 326.186L242.066 366.559C243.345 355.466 248.554 344.69 257.697 336.187C278.957 316.415 313.426 316.416 334.686 336.188L373.18 371.987L334.686 407.786C313.426 427.558 278.957 427.559 257.696 407.788C248.6 399.329 243.399 388.62 242.087 377.587L198.937 417.717L221.761 438.943C236.157 452.332 236.158 474.038 221.763 487.427C207.366 500.815 184.024 500.815 169.628 487.427C155.232 474.038 155.231 452.33 169.628 438.941L192.459 417.708L146.403 374.876L100.68 417.399L123.817 438.916C138.255 452.343 138.257 474.113 123.82 487.54C109.382 500.967 85.9708 500.967 71.5329 487.54L48.396 466.023L2.66776 508.55L48.7235 551.382L71.5859 530.12C85.9823 516.732 109.323 516.734 123.719 530.122C138.115 543.51 138.116 565.217 123.721 578.606C109.324 591.994 85.9817 591.995 71.5852 578.606L48.7381 557.358L5.53424 597.538C17.6462 598.636 29.4383 603.5 38.7151 612.128C59.9742 631.9 59.9742 663.954 38.7151 683.726L0.219299 719.527L-38.2744 683.728C-59.5347 663.956 -59.5347 631.898 -38.2744 612.126C-29.2802 603.762 -17.922 598.936 -6.20004 597.649L-49.6603 557.231L-72.5039 578.475C-86.9004 591.864 -110.243 591.864 -124.639 578.475C-139.035 565.087 -139.035 543.378 -124.639 529.99C-110.243 516.602 -86.9022 516.604 -72.506 529.992L-49.6666 551.232L-3.77249 508.551L-48.8828 466.598L-71.3424 487.486C-85.8046 500.935 -109.262 500.91 -123.689 487.429C-138.068 473.992 -138.04 452.266 -123.627 438.861L-101.167 417.974L-147.279 375.09L-193.184 417.761L-170.286 439.057C-155.89 452.445 -155.888 474.151 -170.284 487.54C-184.68 500.929 -208.022 500.929 -222.419 487.54C-236.815 474.151 -236.815 452.443 -222.419 439.055L-199.56 417.796L-242.369 377.985C-243.748 388.895 -248.937 399.468 -257.937 407.839C-279.197 427.611 -313.669 427.611 -334.929 407.839L-373.425 372.038L-334.929 336.237C-313.669 316.466 -279.199 316.468 -257.939 336.239C-248.783 344.754 -243.573 355.549 -242.304 366.659L-199.31 326.674L-222.157 305.426C-236.553 292.037 -236.553 270.328 -222.157 256.939C-207.76 243.552 -184.42 243.553 -170.024 256.941C-155.628 270.33 -155.626 292.037 -170.021 305.426L-192.883 326.688L-147.277 369.102L-101.538 326.584L-123.629 306.04C-138.091 292.59 -138.062 270.773 -123.565 257.355C-109.117 243.984 -85.7577 244.011 -71.3445 257.416L-49.243 277.97L-3.50983 235.458L-49.1482 193.014L-71.9792 214.247C-86.3758 227.635 -109.719 227.635 -124.115 214.246C-138.511 200.857 -138.511 179.149 -124.115 165.761C-109.719 152.373 -86.3783 152.375 -71.9821 165.762L-49.1343 187.011L-5.59177 146.516C-17.7627 145.448 -29.6216 140.582 -38.9413 131.915C-60.201 112.143 -60.2006 80.0854 -38.9405 60.3135L-0.446838 24.5143L38.0483 60.3148Z" fill="#FFD6C7" />
+      <path d="M390.618 364.231C395.229 364.231 398.966 367.707 398.966 371.995C398.966 376.284 395.229 379.759 390.618 379.759C386.007 379.759 382.27 376.283 382.27 371.995C382.27 367.707 386.007 364.231 390.618 364.231Z" fill="#FFD6C7" />
+      <path d="M-0.00854492 0C4.6022 0.00022933 8.33926 3.47563 8.33945 7.76364C8.33945 12.0519 4.60184 15.5279 -0.00924683 15.5279C-4.62012 15.5278 -8.35706 12.0524 -8.35724 7.76428C-8.35724 3.47598 -4.61963 1.699e-06 -0.00854492 0Z" fill="#FFD6C7" />
+    </svg>
+  );
+}
+
+export function LockIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M17 11H7C5.89543 11 5 11.8954 5 13V20C5 21.1046 5.89543 22 7 22H17C18.1046 22 19 21.1046 19 20V13C19 11.8954 18.1046 11 17 11Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" fill="currentColor" />
+      <path d="M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function PhotoIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function UsersIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function BillingIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} {...props}>
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}

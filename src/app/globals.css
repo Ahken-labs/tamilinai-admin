@@ -1,8 +1,52 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
 @import "tailwindcss";
 
-body {
-  font-family: 'Poppins', sans-serif;
-  background-color: #F8F5F2;
+:root {
+  --primary: #B31B38;
+  --primary-dark: #9A1730;
+  --bg: #FFFFFF;
+  --text: #0A0A0A;
+  --muted: #6B6B6B;
+  --border: #EBEBEB;
 }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-tamil {
+  font-family: 'Noto Sans Tamil', system-ui, sans-serif;
+}
+
+/* Fade up */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up       { animation: fadeUp 0.6s cubic-bezier(.22,1,.36,1) forwards; }
+.fade-up-d1    { animation: fadeUp 0.6s 0.10s cubic-bezier(.22,1,.36,1) both; }
+.fade-up-d2    { animation: fadeUp 0.6s 0.20s cubic-bezier(.22,1,.36,1) both; }
+.fade-up-d3    { animation: fadeUp 0.6s 0.32s cubic-bezier(.22,1,.36,1) both; }
+.fade-up-d4    { animation: fadeUp 0.6s 0.44s cubic-bezier(.22,1,.36,1) both; }
+.fade-up-d5    { animation: fadeUp 0.6s 0.56s cubic-bezier(.22,1,.36,1) both; }
+
+/* Panel slide in */
+@keyframes slideIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+.slide-in { animation: slideIn 0.28s cubic-bezier(.22,1,.36,1) forwards; }
+
+/* Trust bar marquee */
+@keyframes marquee {
+  from { transform: translate3d(0,0,0); }
+  to   { transform: translate3d(-50%,0,0); }
+}
+.marquee { animation: marquee 14s linear infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
