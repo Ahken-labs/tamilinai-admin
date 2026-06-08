@@ -16,13 +16,13 @@ const ICON_MAP: IconMap = {
 
 export default function SocialSection() {
   return (
-    <section className="max-w-[900px] mx-auto w-full px-6 lg:px-10 py-20">
+    <section className="max-w-[1200px] mx-auto w-full max-[370px]:px-2 px-4 sm:px-6 py-15 sm:py-17 md:py-20">
 
       {/* Heading row */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-10">
         <div>
           <SectionLabel>Follow us</SectionLabel>
-          <h2 className="text-[28px] sm:text-[32px] font-bold text-[#0A0A0A] leading-[1.15] tracking-tight">
+          <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-bold text-[#0A0A0A] leading-[1.15] tracking-tight">
             Connect with the community
           </h2>
         </div>
