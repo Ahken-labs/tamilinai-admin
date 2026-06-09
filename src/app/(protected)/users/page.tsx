@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { listUsers, blockUser, unblockUser, toggleElite, listClosedAccounts } from "../../../lib/api";
 import type { AdminListUser, ClosedUser } from "../../../lib/api";
 import Popup from "@/components/Popup";
