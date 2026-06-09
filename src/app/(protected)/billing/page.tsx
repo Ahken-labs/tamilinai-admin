@@ -7,6 +7,7 @@ import {
 } from "../../../lib/api";
 import type { AdminSubscription, AdminRefundRequest, AdminPromoCode } from "../../../lib/api";
 import Popup from "@/components/Popup";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
 type Tab = "subscriptions" | "refunds" | "promo";
 
@@ -24,28 +25,52 @@ function formatAmount(cents: number, currency: string) {
 const PLAN_LABELS: Record<string, string> = { basic: "Basic", pro: "Pro", max: "Max" };
 
 // ── Subscriptions tab ─────────────────────────────────────────────────────────
-function SubscriptionsTab() {
-  const [subs, setSubs]       = useState<AdminSubscription[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage]       = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [error, setError]     = useState("");
+function SubSkeletonRows({ count = 8 }: { count?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <tr key={i} className="border-b border-[#F5F5F5] animate-pulse">
+          {Array.from({ length: 6 }).map((__, j) => (
+            <td key={j} className="px-5 py-4"><div className="h-3 bg-[#F2F2F2] rounded w-24" /></td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
 
-  const fetchSubs = useCallback(async (pg: number) => {
-    setLoading(true);
+function SubscriptionsTab() {
+  const [subs, setSubs]           = useState<AdminSubscription[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage]           = useState(1);
+  const [hasMore, setHasMore]     = useState(false);
+  const [error, setError]         = useState("");
+
+  const fetchSubs = useCallback(async (pg: number, append: boolean) => {
+    if (append) setLoadingMore(true); else setLoading(true);
     setError("");
     try {
       const res = await listAdminSubscriptions(pg);
-      setSubs(res.subscriptions);
+      setSubs((prev) => append ? [...prev, ...res.subscriptions] : res.subscriptions);
       setHasMore(res.hasMore);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false); else setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchSubs(page); }, [fetchSubs, page]);
+  useEffect(() => { fetchSubs(1, false); }, [fetchSubs]);
+
+  const handleLoadMore = useCallback(() => {
+    if (loading || loadingMore || !hasMore) return;
+    const next = page + 1;
+    setPage(next);
+    fetchSubs(next, true);
+  }, [loading, loadingMore, hasMore, page, fetchSubs]);
+
+  const sentinelRef = useInfiniteScroll(handleLoadMore, hasMore && !loading && !loadingMore);
 
   function statusColor(status: string) {
     if (status === "completed")        return "bg-[#F0FDF4] text-[#2E7D32]";
@@ -76,51 +101,48 @@ function SubscriptionsTab() {
             </thead>
             <tbody>
               {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-[#F5F5F5] animate-pulse">
-                    {Array.from({ length: 6 }).map((__, j) => (
-                      <td key={j} className="px-5 py-4"><div className="h-3 bg-[#F2F2F2] rounded w-24" /></td>
-                    ))}
-                  </tr>
-                ))
+                <SubSkeletonRows count={8} />
               ) : subs.length === 0 ? (
                 <tr><td colSpan={6} className="px-5 py-16 text-center text-sm text-[#888]">No subscriptions.</td></tr>
-              ) : subs.map((sub) => (
-                <tr key={sub.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
-                  <td className="px-5 py-3.5">
-                    <p className="text-[13px] font-semibold text-[#0A0A0A]">{sub.userName}</p>
-                    <p className="text-[11px] text-[#888]">{sub.displayId}</p>
-                  </td>
-                  <td className="px-5 py-3.5 text-[13px] text-[#444]">
-                    Elite {PLAN_LABELS[sub.planKey] ?? sub.planKey} · {sub.months}mo
-                  </td>
-                  <td className="px-5 py-3.5 text-[13px] text-[#444]">
-                    {sub.amountCents === 0
-                      ? <span className="text-[#2E7D32] font-medium">Free (Admin)</span>
-                      : formatAmount(sub.amountCents, sub.currency)}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${statusColor(sub.status)}`}>
-                      {sub.status.replace(/_/g, " ")}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-[12px] text-[#888]">{formatDate(sub.periodEnd)}</td>
-                  <td className="px-5 py-3.5 text-[12px] text-[#888]">{formatDate(sub.createdAt)}</td>
-                </tr>
-              ))}
+              ) : (
+                <>
+                  {subs.map((sub) => (
+                    <tr key={sub.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
+                      <td className="px-5 py-3.5">
+                        <p className="text-[13px] font-semibold text-[#0A0A0A]">{sub.userName}</p>
+                        <p className="text-[11px] text-[#888]">{sub.displayId}</p>
+                      </td>
+                      <td className="px-5 py-3.5 text-[13px] text-[#444]">
+                        Elite {PLAN_LABELS[sub.planKey] ?? sub.planKey} · {sub.months}mo
+                      </td>
+                      <td className="px-5 py-3.5 text-[13px] text-[#444]">
+                        {sub.amountCents === 0
+                          ? <span className="text-[#2E7D32] font-medium">Free (Admin)</span>
+                          : formatAmount(sub.amountCents, sub.currency)}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${statusColor(sub.status)}`}>
+                          {sub.status.replace(/_/g, " ")}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-[12px] text-[#888]">{formatDate(sub.periodEnd)}</td>
+                      <td className="px-5 py-3.5 text-[12px] text-[#888]">{formatDate(sub.createdAt)}</td>
+                    </tr>
+                  ))}
+                  {loadingMore && <SubSkeletonRows count={3} />}
+                </>
+              )}
             </tbody>
           </table>
         </div>
       </div>
-      <div className="flex items-center justify-between mt-5">
-        <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((p) => p - 1)}
-          className="px-4 py-2 border border-[#E6E6E6] text-[#6B6B6B] text-sm rounded-xl hover:bg-[#F2F2F2]
-            disabled:opacity-40 transition-colors touch-manipulation">← Prev</button>
-        <span className="text-sm text-[#888]">Page {page}</span>
-        <button type="button" disabled={!hasMore || loading} onClick={() => setPage((p) => p + 1)}
-          className="px-4 py-2 border border-[#E6E6E6] text-[#6B6B6B] text-sm rounded-xl hover:bg-[#F2F2F2]
-            disabled:opacity-40 transition-colors touch-manipulation">Next →</button>
-      </div>
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="h-1" />
+
+      {!hasMore && subs.length > 0 && (
+        <p className="text-center text-[12px] text-[#CCCCCC] mt-4">All subscriptions loaded</p>
+      )}
     </>
   );
 }

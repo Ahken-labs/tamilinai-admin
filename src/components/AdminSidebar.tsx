@@ -10,6 +10,7 @@ import {
   BillingIcon,
   SignOutIcon,
   MenuIcon,
+  SeedIcon, // remove this once website gets real profile traffic
 } from "@/assets/Icons";
 import Popup from "./Popup";
 
@@ -17,6 +18,9 @@ const NAV = [
   { label: "Users", href: "/users", Icon: UsersIcon },
   { label: "Photos", href: "/photos", Icon: PhotoIcon },
   { label: "Billing", href: "/billing", Icon: BillingIcon },
+  // remove this once website gets real profile traffic
+  { label: "Seeded", href: "/seeded", Icon: SeedIcon },
+  // end-removal
 ] as const;
 
 export default function AdminSidebar() {
