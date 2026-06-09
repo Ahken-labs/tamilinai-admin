@@ -239,6 +239,52 @@ export async function listClosedAccounts(
   return apiFetch(`/users/closed?page=${page}`);
 }
 
+// ── SEED USERS ────────────────────────────────────────────────────────────────
+// remove this section once website gets real profile traffic
+
+export type SeedUser = {
+  id: string;
+  displayId: string;
+  name: string;
+  gender: string;
+  profileType: string;
+  trustBadge: boolean;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
+  createdAt: string;
+  photoUrl: string | null;
+};
+
+export async function listSeedUsers(page = 1): Promise<{ users: SeedUser[]; page: number; hasMore: boolean }> {
+  return apiFetch(`/users/seeded?page=${page}`);
+}
+
+export async function createSeedUser(formData: FormData): Promise<{ user: SeedUser }> {
+  const token = getToken();
+  const res = await fetch(`${BASE}/api/admin/users/seed`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (res.status === 401) {
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
+    window.location.href = "/";
+    throw new Error("Session expired");
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error ?? "Failed to create seed user");
+  }
+  return res.json();
+}
+
+export async function deleteSeedUser(userId: string): Promise<{ success: boolean }> {
+  return apiFetch(`/users/seed/${userId}`, { method: "DELETE" });
+}
+
+// end-removal ─────────────────────────────────────────────────────────────────
+
 export async function getAdminStats(): Promise<{
   totalUsers: number;
   blockedUsers: number;
