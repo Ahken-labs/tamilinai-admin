@@ -101,7 +101,7 @@ export default function LoginPanel({ onClose }: { onClose: () => void }) {
       const res = await adminLogin(email, password);
       localStorage.setItem("admin_token", res.accessToken);
       localStorage.setItem("admin_user", JSON.stringify(res.admin));
-      router.push("/photos");
+      router.push("/users");
     } catch (err) {
       setPasswordErr(err instanceof Error ? err.message : "Invalid credentials");
     } finally {
