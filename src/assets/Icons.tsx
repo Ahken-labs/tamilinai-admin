@@ -120,6 +120,28 @@ export function ForwardArrowIcon({ className = "w-5 h-5", ...props }: IconProps)
   );
 }
 
+export function SignOutIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  );
+}
+
+export function MenuIcon({ className = "w-5 h-5", ...props }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+      strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  );
+}
+
 export function Logo({ className = "w-5 lg:w-6 h-5 lg:h-6 shrink-0", ...props }: IconProps) {
   return (
     <div className="flex w-9 lg:w-10 h-9 lg:h-10 items-center justify-center rounded-[20px] bg-[#B31B38] shrink-0 pt-[7px] pb-[9px] pr-[9px] pl-[7px]">

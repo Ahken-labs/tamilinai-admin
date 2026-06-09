@@ -163,14 +163,14 @@ export type AdminRefundRequest = {
 
 export async function listAdminRefundRequests(
   status?: string,
-): Promise<{ requests: AdminRefundRequest[] }> {
+): Promise<{ refundRequests: AdminRefundRequest[]; hasMore: boolean }> {
   const q = status ? `?status=${status}` : "";
   return apiFetch(`/billing/refund-requests${q}`);
 }
 
 export async function reviewAdminRefundRequest(
   id: string,
-  action: "approved" | "rejected",
+  action: "approve" | "reject",
   adminNote?: string,
 ): Promise<{ message: string }> {
   return apiFetch(`/billing/refund-requests/${id}`, {

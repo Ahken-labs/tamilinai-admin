@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AdminHeader from "../../components/AdminHeader";
+import AdminSidebar from "../../components/AdminSidebar";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem("admin_token")) {
-      window.location.replace("/login");
+      window.location.replace("/");
     } else {
       setReady(true);
     }
@@ -16,16 +16,24 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-[#F8F5F2] flex items-center justify-center">
-        <span className="text-sm text-[#6B6B6B]">Loading…</span>
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-7 h-7 border-2 border-[#B31B38] border-t-transparent rounded-full animate-spin"/>
+          <span className="text-[13px] text-[#888888]">Loading…</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F5F2]">
-      <AdminHeader />
-      <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
+    <div className="flex h-screen overflow-hidden bg-[#FAFAFA]">
+      <AdminSidebar/>
+      {/* pt-[56px] accounts for the mobile fixed top bar; removed on lg */}
+      <main className="flex-1 overflow-y-auto pt-[56px] sm:pt-0">
+        <div className="max-w-6xl mx-auto max-[370px]:px-3 px-4 sm:px-6 py-6 sm:py-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
