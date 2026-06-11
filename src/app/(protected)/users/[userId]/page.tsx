@@ -317,7 +317,7 @@ export default function UserDetailPage() {
         {/* Account Info */}
         <SectionCard title="Account">
           <InfoRow label="Email" value={user.email} />
-          <InfoRow label="Phone" value={user.phone ? `${user.countryCode} ${user.phone}` : null} />
+          <InfoRow label="Phone" value={user.phone ?? null} />
           <InfoRow label="Gender" value={ucFirst(user.gender)} />
           <InfoRow label="Profile type" value={ucFirst(user.profileType)} />
           <InfoRow label="Email verified" value={user.isEmailVerified ? "Yes" : "No"} />
