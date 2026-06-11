@@ -7,6 +7,7 @@ import {
 } from "../../../lib/api";
 import type { AdminSubscription, AdminRefundRequest, AdminPromoCode } from "../../../lib/api";
 import Popup from "@/components/Popup";
+import { useToast } from "@/components/Toast";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
 type Tab = "subscriptions" | "refunds" | "promo";
@@ -82,7 +83,7 @@ function SubscriptionsTab() {
   return (
     <>
       {error && (
-        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-sm text-[#B31B38]">
+        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-[12px] md:text-[14px] text-[#B31B38]">
           {error}
         </div>
       )}
@@ -91,42 +92,42 @@ function SubscriptionsTab() {
           <table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">User</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Plan</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Amount</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Status</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Period End</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Date</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">User</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Plan</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Amount</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Status</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Period End</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Date</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <SubSkeletonRows count={8} />
               ) : subs.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-16 text-center text-sm text-[#888]">No subscriptions.</td></tr>
+                <tr><td colSpan={6} className="px-5 py-16 text-center text-[12px] md:text-[14px] text-[#888]">No subscriptions.</td></tr>
               ) : (
                 <>
                   {subs.map((sub) => (
                     <tr key={sub.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
                       <td className="px-5 py-3.5">
-                        <p className="text-[13px] font-semibold text-[#0A0A0A]">{sub.userName}</p>
-                        <p className="text-[11px] text-[#888]">{sub.displayId}</p>
+                        <p className="text-[12px] md:text-[14px] font-medium text-[#0A0A0A]">{sub.userName}</p>
+                        <p className="text-[12px] md:text-[14px] text-[#888]">{sub.displayId}</p>
                       </td>
-                      <td className="px-5 py-3.5 text-[13px] text-[#444]">
+                      <td className="px-5 py-3.5 text-[12px] md:text-[14px] text-[#444]">
                         Elite {PLAN_LABELS[sub.planKey] ?? sub.planKey} · {sub.months}mo
                       </td>
-                      <td className="px-5 py-3.5 text-[13px] text-[#444]">
+                      <td className="px-5 py-3.5 text-[12px] md:text-[14px] text-[#444]">
                         {sub.amountCents === 0
                           ? <span className="text-[#2E7D32] font-medium">Free (Admin)</span>
                           : formatAmount(sub.amountCents, sub.currency)}
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${statusColor(sub.status)}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[12px] md:text-[14px] font-semibold capitalize ${statusColor(sub.status)}`}>
                           {sub.status.replace(/_/g, " ")}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-[12px] text-[#888]">{formatDate(sub.periodEnd)}</td>
-                      <td className="px-5 py-3.5 text-[12px] text-[#888]">{formatDate(sub.createdAt)}</td>
+                      <td className="px-5 py-3.5 text-[12px] md:text-[14px] text-[#888]">{formatDate(sub.periodEnd)}</td>
+                      <td className="px-5 py-3.5 text-[12px] md:text-[14px] text-[#888]">{formatDate(sub.createdAt)}</td>
                     </tr>
                   ))}
                   {loadingMore && <SubSkeletonRows count={3} />}
@@ -141,7 +142,7 @@ function SubscriptionsTab() {
       <div ref={sentinelRef} className="h-1" />
 
       {!hasMore && subs.length > 0 && (
-        <p className="text-center text-[12px] text-[#CCCCCC] mt-4">All subscriptions loaded</p>
+        <p className="text-center text-[12px] md:text-[14px] text-[#CCCCCC] mt-4">All subscriptions loaded 🎉</p>
       )}
     </>
   );
@@ -202,7 +203,7 @@ function RefundsTab() {
       <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 mb-6">
         {["pending", "approved", "rejected"].map((s) => (
           <button key={s} type="button" onClick={() => setFilter(s)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize touch-manipulation ${
+            className={`flex-1 py-2 rounded-lg text-[14px] md:text-[16px] font-medium capitalize touch-manipulation ${
               filter === s ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
             }`}>
             {s}
@@ -211,7 +212,7 @@ function RefundsTab() {
       </div>
 
       {error && (
-        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-sm text-[#B31B38]">
+        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-[12px] md:text-[14px] text-[#B31B38]">
           {error}
         </div>
       )}
@@ -221,12 +222,12 @@ function RefundsTab() {
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">User</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Plan / Amount</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Reason</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Requested</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">User</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Plan / Amount</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Reason</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Requested</th>
                 {filter === "pending" && (
-                  <th className="text-right px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>
+                  <th className="text-right px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>
                 )}
               </tr>
             </thead>
@@ -242,25 +243,25 @@ function RefundsTab() {
               ) : requests.length === 0 ? (
                 <tr>
                   <td colSpan={filter === "pending" ? 5 : 4}
-                    className="px-5 py-16 text-center text-sm text-[#888]">
+                    className="px-5 py-16 text-center text-[12px] md:text-[14px] text-[#888]">
                     No {filter} refund requests.
                   </td>
                 </tr>
               ) : requests.map((req) => (
                 <tr key={req.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
                   <td className="px-5 py-3.5">
-                    <p className="text-[13px] font-semibold text-[#0A0A0A]">{req.userName}</p>
-                    <p className="text-[11px] text-[#888]">{req.displayId}</p>
+                    <p className="text-[12px] md:text-[14px] font-semibold text-[#0A0A0A]">{req.userName}</p>
+                    <p className="text-[12px] md:text-[14px] text-[#888]">{req.displayId}</p>
                   </td>
                   <td className="px-5 py-3.5">
                     <p className="text-[13px] text-[#444]">Elite {PLAN_LABELS[req.planKey] ?? req.planKey}</p>
-                    <p className="text-[11px] text-[#888]">{formatAmount(req.amountCents, req.currency)}</p>
+                    <p className="text-[12px] md:text-[14px] text-[#888]">{formatAmount(req.amountCents, req.currency)}</p>
                   </td>
                   <td className="px-5 py-3.5 max-w-[200px]">
-                    <p className="text-[12px] text-[#444] line-clamp-2">{req.reason}</p>
-                    {req.otherText && <p className="text-[12px] text-[#888] mt-0.5 italic">{req.otherText}</p>}
+                    <p className="text-[12px] md:text-[14px] text-[#444] line-clamp-2">{req.reason}</p>
+                    {req.otherText && <p className="text-[12px] md:text-[14px] text-[#888] mt-0.5 italic">{req.otherText}</p>}
                   </td>
-                  <td className="px-5 py-3.5 text-[12px] text-[#888]">{formatDate(req.createdAt)}</td>
+                  <td className="px-5 py-3.5 text-[12px] md:text-[14px] text-[#888]">{formatDate(req.createdAt)}</td>
                   {filter === "pending" && (
                     <td className="px-5 py-3.5">
                       <div className="flex flex-col items-end gap-2">
@@ -269,7 +270,7 @@ function RefundsTab() {
                           placeholder="Admin note (optional)"
                           value={noteMap[req.id] ?? ""}
                           onChange={(e) => setNoteMap((prev) => ({ ...prev, [req.id]: e.target.value }))}
-                          className="text-xs border border-[#E6E6E6] rounded-lg px-2 py-1.5 w-48
+                          className="text-[12px] md:text-[14px] border border-[#E6E6E6] rounded-lg px-2 py-1.5 w-48
                             outline-none focus:border-[#B31B38] bg-white transition-colors"
                         />
                         <div className="flex gap-2">
@@ -283,7 +284,7 @@ function RefundsTab() {
                               note: noteMap[req.id] ?? "",
                               action: "reject",
                             })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#FFF0F3] text-[#B31B38]
+                            className="px-3 py-1.5 rounded-lg text-[12px] md:text-[14px] font-semibold bg-[#FFF0F3] text-[#B31B38]
                               hover:bg-[#FFE0E7] disabled:opacity-40 transition-colors touch-manipulation"
                           >
                             {acting === req.id ? "…" : "Reject"}
@@ -298,7 +299,7 @@ function RefundsTab() {
                               note: noteMap[req.id] ?? "",
                               action: "approve",
                             })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F0FDF4] text-[#2E7D32]
+                            className="px-3 py-1.5 rounded-lg text-[12px] md:text-[14px] font-semibold bg-[#F0FDF4] text-[#2E7D32]
                               hover:bg-[#DCFCE7] disabled:opacity-40 transition-colors touch-manipulation"
                           >
                             {acting === req.id ? "…" : "Approve & Refund"}
@@ -341,6 +342,7 @@ function RefundsTab() {
 type PendingDelete = { id: string; code: string };
 
 function PromoCodesTab() {
+  const { toast } = useToast();
   const [codes, setCodes]           = useState<AdminPromoCode[]>([]);
   const [loading, setLoading]       = useState(true);
   const [acting, setActing]         = useState<string | null>(null);
@@ -371,8 +373,11 @@ function PromoCodesTab() {
     try {
       await updateAdminPromoCode(id, { isActive: !isActive });
       setCodes((prev) => prev.map((c) => c.id === id ? { ...c, isActive: !isActive } : c));
+      toast({ type: "success", title: isActive ? "Promo code disabled" : "Promo code enabled" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update");
+      const msg = err instanceof Error ? err.message : "Failed to update";
+      setError(msg);
+      toast({ type: "error", title: "Update failed", message: msg });
     } finally {
       setActing(null);
     }
@@ -380,14 +385,17 @@ function PromoCodesTab() {
 
   async function executeDelete() {
     if (!pendingDelete) return;
-    const { id } = pendingDelete;
+    const { id, code } = pendingDelete;
     setPending(null);
     setActing(`del_${id}`);
     try {
       await deleteAdminPromoCode(id);
       setCodes((prev) => prev.filter((c) => c.id !== id));
+      toast({ type: "success", title: "Promo code deleted", message: `${code} has been removed.` });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
+      const msg = err instanceof Error ? err.message : "Failed to delete";
+      setError(msg);
+      toast({ type: "error", title: "Delete failed", message: msg });
     } finally {
       setActing(null);
     }
@@ -414,8 +422,11 @@ function PromoCodesTab() {
       setCodes((prev) => [res.promoCode, ...prev]);
       setForm({ code: "", discountLkr: "", discountUsd: "", maxUses: "", expiresAt: "" });
       setShowForm(false);
+      toast({ type: "success", title: "Promo code created", message: `${res.promoCode.code} is now active.` });
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Failed to create.");
+      const msg = err instanceof Error ? err.message : "Failed to create.";
+      setFormError(msg);
+      toast({ type: "error", title: "Failed to create", message: msg });
     } finally {
       setCreating(false);
     }
@@ -424,11 +435,11 @@ function PromoCodesTab() {
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-[#888]">Manage promo codes for checkout discounts.</p>
+        <p className="text-[12px] md:text-[14px] text-[#888]">Manage promo codes for checkout discounts.</p>
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
-          className={`px-4 flex ${showForm ? "" : "min-w-[116.7px]"} py-2 bg-[#B31B38] text-white text-sm font-semibold rounded-xl
+          className={`px-4 flex ${showForm ? "" : "min-w-[116.7px]"} py-2 bg-[#B31B38] text-white text-[14px] md:text-[16px] font-semibold rounded-xl
             hover:bg-[#9A1730] transition-colors touch-manipulation`}
         >
           {showForm ? "Cancel" : "+ New Code"}
@@ -438,49 +449,49 @@ function PromoCodesTab() {
       {/* Create form */}
       {showForm && (
         <form onSubmit={handleCreate} className="mb-6 bg-white rounded-2xl border border-[#EEEEEE] p-5">
-          <h3 className="text-sm font-semibold text-[#0A0A0A] mb-4">New Promo Code</h3>
+          <h3 className="text-[14px] md:text-[16px] font-semibold text-[#0A0A0A] mb-4">New Promo Code</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-[#888] mb-1 block">Code *</label>
+              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Code *</label>
               <input type="text" placeholder="e.g. WELCOME50" value={form.code}
                 onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-sm bg-white
+                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
             <div>
-              <label className="text-xs font-medium text-[#888] mb-1 block">Discount LKR (Rs)</label>
+              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Discount LKR (Rs)</label>
               <input type="number" placeholder="e.g. 500" value={form.discountLkr}
                 onChange={(e) => setForm((f) => ({ ...f, discountLkr: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-sm bg-white
+                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
             <div>
-              <label className="text-xs font-medium text-[#888] mb-1 block">Discount USD ($)</label>
+              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Discount USD ($)</label>
               <input type="number" step="0.01" placeholder="e.g. 2.00" value={form.discountUsd}
                 onChange={(e) => setForm((f) => ({ ...f, discountUsd: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-sm bg-white
+                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
             <div>
-              <label className="text-xs font-medium text-[#888] mb-1 block">Max Uses (blank = unlimited)</label>
+              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Max Uses (blank = unlimited)</label>
               <input type="number" placeholder="e.g. 100" value={form.maxUses}
                 onChange={(e) => setForm((f) => ({ ...f, maxUses: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-sm bg-white
+                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-[#888] mb-1 block">Expires At (blank = never)</label>
+              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Expires At (blank = never)</label>
               <input type="datetime-local" value={form.expiresAt}
                 onChange={(e) => setForm((f) => ({ ...f, expiresAt: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-sm bg-white
+                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
           </div>
-          {formError && <p className="mt-3 text-xs text-[#B31B38]">{formError}</p>}
+          {formError && <p className="mt-3 text-[12px] md:text-[14px] text-[#B31B38]">{formError}</p>}
           <button
             type="submit"
             disabled={creating}
-            className="mt-4 px-6 py-2.5 bg-[#B31B38] text-white text-sm font-semibold rounded-xl
+            className="mt-4 px-6 py-2.5 bg-[#B31B38] text-white text-[14px] md:text-[16px] font-semibold rounded-xl
               hover:bg-[#9A1730] disabled:opacity-50 transition-colors touch-manipulation"
           >
             {creating ? "Creating…" : "Create Code"}
@@ -489,7 +500,7 @@ function PromoCodesTab() {
       )}
 
       {error && (
-        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-sm text-[#B31B38]">
+        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-[12px] md:text-[14px] text-[#B31B38]">
           {error}
         </div>
       )}
@@ -499,12 +510,12 @@ function PromoCodesTab() {
           <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Code</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Discount LKR</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Discount USD</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Uses</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Expires</th>
-                <th className="text-right px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Code</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Discount LKR</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Discount USD</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Uses</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Expires</th>
+                <th className="text-right px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -517,7 +528,7 @@ function PromoCodesTab() {
                   </tr>
                 ))
               ) : codes.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-16 text-center text-sm text-[#888]">No promo codes yet.</td></tr>
+                <tr><td colSpan={6} className="px-5 py-16 text-center text-[12px] md:text-[14px] text-[#888]">No promo codes yet.</td></tr>
               ) : codes.map((c) => (
                 <tr key={c.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
                   <td className="px-5 py-3.5">
@@ -546,11 +557,11 @@ function PromoCodesTab() {
                         type="button"
                         disabled={!!acting}
                         onClick={() => handleToggle(c.id, c.isActive)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors
-                          disabled:opacity-40 touch-manipulation ${
+                        className={`cursor-pointer px-3 py-1.5 rounded-lg text-[12px] md:text-[14px] font-semibold transition-colors
+                          disabled:opacity-40 touch-manipulation border ${
                           c.isActive
-                            ? "bg-[#FFF8E1] text-[#E65100] hover:bg-[#FEF3C7]"
-                            : "bg-[#F0FDF4] text-[#2E7D32] hover:bg-[#DCFCE7]"
+                            ? "bg-[#FFFFFF] text-[#B31B38] hover:bg-[#FFF0F3]"
+                            : "bg-[#FFF0F3] text-[#B31B38] hover:bg-[#FFF0F3]"
                         }`}
                       >
                         {acting === c.id ? "…" : c.isActive ? "Disable" : "Enable"}
@@ -559,8 +570,8 @@ function PromoCodesTab() {
                         type="button"
                         disabled={!!acting}
                         onClick={() => setPending({ id: c.id, code: c.code })}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#FFF0F3] text-[#B31B38]
-                          hover:bg-[#FFE0E7] disabled:opacity-40 transition-colors touch-manipulation"
+                        className="cursor-pointer px-3 py-1.5 rounded-lg text-[12px] md:text-[14px] font-semibold bg-[#B31B38] text-[#FFFFFF]
+                          hover:bg-[#8E162D] active:bg-[#6F1023] disabled:opacity-40 transition-colors touch-manipulation"
                       >
                         {acting === `del_${c.id}` ? "…" : "Delete"}
                       </button>
@@ -616,7 +627,7 @@ export default function BillingPage() {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium touch-manipulation ${
+            className={`flex-1 py-2 rounded-lg text-[14px] md:text-[16px] font-medium touch-manipulation ${
               tab === t ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
             }`}
           >

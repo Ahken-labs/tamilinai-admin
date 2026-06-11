@@ -150,13 +150,13 @@ export default function NotificationsPage() {
       </div>
 
       {/* Tab toggle */}
-      <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 w-fit ">
         {([["send", "Send Notification"], ["events", "System Events"]] as [PageTab, string][]).map(([t, label]) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors touch-manipulation ${
+            className={`px-5 py-2 rounded-lg text-[14px] md:text-[16px] font-medium transition-colors touch-manipulation ${
               tab === t ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
             }`}
           >
@@ -174,7 +174,7 @@ export default function NotificationsPage() {
                 key={m}
                 type="button"
                 onClick={() => { setMode(m); setSendError(""); }}
-                className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors touch-manipulation ${
+                className={`flex-1 py-1.5 rounded-lg text-[14px] md:text-[16px] font-medium transition-colors touch-manipulation ${
                   mode === m ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
                 }`}
               >
@@ -183,10 +183,10 @@ export default function NotificationsPage() {
             ))}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-0">
             {mode === "specific" && (
-              <div className="flex flex-col gap-1">
-                <label className="text-[12px] font-medium text-[#555]">User ID</label>
+              <div className="flex flex-col gap-1 md:gap-2">
+                <label className="text-[14px] md:text-[16px] font-medium text-[#555]">User ID</label>
                 <input
                   type="text"
                   value={targetUserId}
@@ -195,18 +195,17 @@ export default function NotificationsPage() {
                   className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-sm text-[#222]
                     placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
                 />
-                <p className="text-[11px] text-[#AAAAAA]">Copy the ID from the user detail page.</p>
               </div>
             )}
 
             {mode === "broadcast" && (
-              <div className="px-3 py-2.5 bg-[#FFF0F3] border border-[#B31B38] rounded-xl text-[12px] text-[#B31B38]">
+              <div className="px-3 py-2.5 bg-[#FFF0F3] border border-[#B31B38] rounded-xl text-[12px] md:text-[14px] text-[#B31B38]">
                 Sends to <strong>all active users</strong>. Use for announcements, wishes, updates.
               </div>
             )}
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-medium text-[#555]">Title <span className="text-[#B31B38]">*</span></label>
+            <div className="mt-4 flex flex-col gap-1 md:gap-2">
+              <label className="text-[14px] md:text-[16px] font-medium text-[#555]">Title <span className="text-[#B31B38]">*</span></label>
               <input
                 ref={titleRef}
                 type="text"
@@ -214,14 +213,14 @@ export default function NotificationsPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={120}
                 placeholder="e.g. Happy New Year 🎉"
-                className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-sm text-[#222]
+                className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-[12px] md:text-[14px] text-[#222]
                   placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-medium text-[#555]">
-                Message <span className="text-[#AAAAAA] font-normal">(optional)</span>
+            <div className="mt-4 flex flex-col gap-1 md:gap-2">
+              <label className="text-[14px] md:text-[16px] font-medium text-[#222]">
+                Message <span className="text-[#222] font-normal">(optional)</span>
               </label>
               <textarea
                 value={message}
@@ -229,18 +228,18 @@ export default function NotificationsPage() {
                 maxLength={500}
                 rows={3}
                 placeholder="Optional body text…"
-                className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-sm text-[#222]
+                className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-[12px] md:text-[14px] text-[#222]
                   placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white resize-none"
               />
             </div>
 
-            {sendError && <p className="text-[12px] text-[#B31B38]">{sendError}</p>}
+            {sendError && <p className="text-[12px] md:text-[14px] text-[#B31B38]">*{sendError}</p>}
 
             <button
               type="button"
               disabled={sending}
               onClick={openConfirm}
-              className="w-full py-2.5 bg-[#B31B38] text-white text-sm font-semibold rounded-xl
+              className="mt-6 w-full py-2.5 bg-[#B31B38] text-white text-[14px] md:text-[16px] font-semibold rounded-xl
                 hover:bg-[#9A1730] disabled:opacity-40 transition-colors"
             >
               {sending ? "Sending…" : mode === "broadcast" ? "Send to all users" : "Send notification"}
@@ -253,7 +252,7 @@ export default function NotificationsPage() {
       {tab === "events" && (
         <div>
           {fetchError && (
-            <div className="mb-4 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-sm text-[#B31B38]">
+            <div className="mb-4 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-[14px] md:text-[16px] text-[#B31B38]">
               {fetchError}
             </div>
           )}
@@ -262,7 +261,7 @@ export default function NotificationsPage() {
             {loading ? (
               <SkeletonRows count={8} />
             ) : notifications.length === 0 ? (
-              <div className="px-5 py-16 text-center text-sm text-[#888]">No system events yet.</div>
+              <div className="px-5 py-16 text-center text-[14px] md:text-[16px] text-[#888]">No system events yet.</div>
             ) : (
               <>
                 {notifications.map((n) => (

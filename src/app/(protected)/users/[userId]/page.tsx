@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAdminUser, setContactLimit, blockUser, unblockUser, toggleElite } from "@/lib/api";
 import type { AdminUserDetail } from "@/lib/api";
-import { BackArrowIcon } from "@/assets/Icons";
+import { BackArrowIcon, EliteIcon, VerifiedIcon } from "@/assets/Icons";
 import Popup from "@/components/Popup";
 import { useToast } from "@/components/Toast";
 
@@ -21,10 +21,12 @@ function formatDateTime(d: string | null | undefined): string {
 function ucFirst(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 function CopyIdButton({ userId }: { userId: string }) {
+  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
     navigator.clipboard.writeText(userId).then(() => {
+      toast({ type: "success", title: "Copied!", message: "User ID copied to clipboard." });
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
@@ -35,20 +37,19 @@ function CopyIdButton({ userId }: { userId: string }) {
       type="button"
       onClick={handleCopy}
       title="Copy user ID"
-      className="flex items-center gap-1.5 text-[11px] text-[#AAAAAA] hover:text-[#555] transition-colors group"
+      className="flex items-center gap-1.5 text-[14px] md:text-[16px] text-[#AAAAAA] hover:text-[#555] transition-colors group"
     >
       <span className="font-mono">{userId.slice(0, 8)}…{userId.slice(-4)}</span>
       {copied ? (
-        <svg viewBox="0 0 16 16" fill="none" className="w-3 h-3 text-[#2E7D32] shrink-0">
+        <svg viewBox="0 0 16 16" fill="none" className="cursor-pointer w-4 h-4 text-[#2E7D32] shrink-0">
           <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ) : (
-        <svg viewBox="0 0 16 16" fill="none" className="w-3 h-3 shrink-0 opacity-50 group-hover:opacity-100">
+        <svg viewBox="0 0 16 16" fill="none" className="cursor-pointer w-4 h-4 shrink-0 opacity-50 group-hover:opacity-100">
           <rect x="5" y="5" width="8" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
           <path d="M5 4.5V3.5A1.5 1.5 0 0 1 6.5 2h6A1.5 1.5 0 0 1 14 3.5v7A1.5 1.5 0 0 1 12.5 12H11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       )}
-      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px]">{copied ? "Copied!" : "Copy"}</span>
     </button>
   );
 }
@@ -113,8 +114,8 @@ function ElitePlanDropdown({ value, onChange, disabled }: {
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#EEEEEE] p-5 sm:p-6">
-      <h3 className="text-[13px] font-semibold text-[#888] uppercase tracking-wide mb-4">{title}</h3>
+    <div className="bg-white rounded-2xl border border-[#EEEEEE] p-4 sm:p-5">
+      <h3 className="text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-2">{title}</h3>
       {children}
     </div>
   );
@@ -122,23 +123,33 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-0.5 sm:gap-3 py-2 border-b border-[#F5F5F5] last:border-0">
-      <span className="text-[12px] text-[#888] sm:w-[160px] shrink-0">{label}</span>
-      <span className="text-[13px] text-[#0A0A0A] font-medium break-all">{value ?? "—"}</span>
+    <div className="flex flex-col min-[400px]:flex-row min-[400px]:items-start gap-0.5 min-[400px]:gap-3 py-2 border-b border-[#F5F5F5] last:border-0">
+      <span className="text-[14px] md:text-[16px] text-[#767676] min-[400px]:w-[140px] min-[500px]:w-[160px] shrink-0">{label}</span>
+      <span className="text-[14px] md:text-[16px] text-[#222222] break-all">{value ?? "—"}</span>
     </div>
   );
 }
 
-function Badge({ label, color }: { label: string; color: "green" | "red" | "orange" | "gray" | "blue" }) {
+function Badge({ label, color }: { label: string; color: "green" | "red" | "orange" | "gray" | "blue" | "brown" }) {
   const cls = {
     green:  "bg-[#F0FDF4] text-[#2E7D32]",
+    brown:  "bg-[#FFFFFF] text-[#8D5900]",
     red:    "bg-[#FFF0F3] text-[#B31B38]",
-    orange: "bg-[#FFF8E1] text-[#E65100]",
+    orange: "bg-[#FFF3DC] text-[#A97216]",
     gray:   "bg-[#F2F2F2] text-[#6B6B6B]",
     blue:   "bg-[#EFF6FF] text-[#1D4ED8]",
   }[color];
+
+  const icon =
+    label === "Elite"    ? <EliteIcon    className="w-5 h-5 shrink-0" /> :
+    label === "Verified" ? <VerifiedIcon className="w-5 h-5 shrink-0" /> :
+    label === "Complete" ? <svg viewBox="0 0 12 12" fill="none" className="w-3.5 h-3.5 shrink-0"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg> :
+    null;
+
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${cls}`}>{label}</span>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[14px] font-semibold ${cls}`}>
+      {icon}{label}
+    </span>
   );
 }
 
@@ -275,34 +286,42 @@ export default function UserDetailPage() {
   return (
     <>
       {/* Header */}
-      <div className="flex items-start gap-4 mb-6">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-xl border border-[#E6E6E6]
-            text-[#555] hover:bg-[#F5F5F5] hover:text-[#0A0A0A] transition-colors shrink-0"
-          aria-label="Go back"
-        >
-          <BackArrowIcon className="w-4 h-4" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A] leading-tight">{user.name}</h1>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-            <span className="text-[12px] text-[#888]">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#CCCCCC] mr-1">Inai ID</span>
-              {user.displayId}
-            </span>
-            <span className="text-[#E0E0E0] text-[11px] hidden sm:inline">·</span>
+      <div className="mb-4">
+        <div className="flex items-center gap-4 mb-5">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl border border-[#E6E6E6]
+              text-[#555] hover:border-[#B31B38] hover:bg-[#FFF] hover:text-[#B31B38] transition-colors shrink-0"
+            aria-label="Go back"
+          >
+            <BackArrowIcon className="w-4.5 h-4.5" />
+          </button>
+          <h1 className="text-[18px] sm:text-[22px] font-semibold text-[#222] leading-tight">{user.name}</h1>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 bg-white border border-[#EEEEEE] rounded-2xl max-[370px]:px-2 px-4 sm:px-5 py-3.5">
+          <div className="flex flex-col gap-1">
+            <span className="text-[14px] md:text-[16px] font-semibold uppercase tracking-wide text-[#888]">Inai ID</span>
+            <span className="text-[14px] md:text-[16px] text-[#222]">{user.displayId}</span>
+          </div>
+          <div className="w-px h-8 bg-[#EEEEEE] hidden sm:block" />
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[14px] md:text-[16px] font-semibold uppercase tracking-wide text-[#888]">User ID</span>
             <CopyIdButton userId={user.id} />
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {user.isElite    && <Badge label="Elite"    color="orange" />}
-            {user.isBlocked  && <Badge label="Blocked"  color="red" />}
-            {user.isClosed   && <Badge label="Closed"   color="gray" />}
-            {user.isOnBreak  && <Badge label="On Break" color="blue" />}
-            {user.trustBadge && <Badge label="Verified" color="green" />}
-            {user.isProfileComplete && <Badge label="Complete" color="green" />}
-          </div>
+          {(user.isElite || user.isBlocked || user.isClosed || user.isOnBreak || user.trustBadge || user.isProfileComplete) && (
+            <>
+              <div className="w-px h-8 bg-[#EEEEEE] hidden sm:block" />
+              <div className="flex flex-wrap gap-1.5 items-center">
+                {user.isElite    && <Badge label="Elite"    color="orange" />}
+                {user.isBlocked  && <Badge label="Blocked"  color="red" />}
+                {user.isClosed   && <Badge label="Closed"   color="gray" />}
+                {user.isOnBreak  && <Badge label="On Break" color="blue" />}
+                {user.trustBadge && <Badge label="Verified" color="brown" />}
+                {user.isProfileComplete && <Badge label="Complete" color="green" />}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -430,19 +449,19 @@ export default function UserDetailPage() {
         {p?.aboutMe && (
           <div className="lg:col-span-2">
             <SectionCard title="About Me">
-              <p className="text-[13px] text-[#333] leading-[1.7] whitespace-pre-wrap">{p.aboutMe}</p>
+              <p className="text-[14px] md:text-[16px] text-[#222] leading-[1.7] whitespace-pre-wrap">{p.aboutMe}</p>
             </SectionCard>
           </div>
         )}
 
-        {/* Contact Limit Override */}
-        <div className="lg:col-span-2">
+        {/* Contact Limit Override — Elite only */}
+        {user.isElite && (<div className="lg:col-span-2">
           <SectionCard title="Contact View Limit Override">
-            <p className="text-[13px] text-[#555] mb-4">
-              Default limit is <strong>40</strong> contacts/month for free users.
-              Elite users use plan limits. Override here to set a custom limit for this user.
+            <p className="text-[14px] md:text-[16px] text-[#222] mb-4">
+              Only Elite users can view contacts. Plan limits: Basic — 30 per 2 months, Pro — 60 per 3 months, Max — 90 per 6 months.
+              Set an override to replace the plan limit for this user (Elite only).
               Current override:{" "}
-              <strong>{user.contactViewLimitOverride != null ? user.contactViewLimitOverride : "None (system default)"}</strong>
+              <strong>{user.contactViewLimitOverride != null ? user.contactViewLimitOverride : "None (plan default)"}</strong>
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <input
@@ -478,7 +497,7 @@ export default function UserDetailPage() {
               )}
             </div>
           </SectionCard>
-        </div>
+        </div>)}
 
       </div>
 
