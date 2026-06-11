@@ -8,6 +8,7 @@ import {
   PhotoIcon,
   UsersIcon,
   BillingIcon,
+  BellIcon,
   SignOutIcon,
   MenuIcon,
   SeedIcon, // remove this once website gets real profile traffic
@@ -18,6 +19,7 @@ const NAV = [
   { label: "Users", href: "/users", Icon: UsersIcon },
   { label: "Photos", href: "/photos", Icon: PhotoIcon },
   { label: "Billing", href: "/billing", Icon: BillingIcon },
+  { label: "Notifications", href: "/notifications", Icon: BellIcon },
   // remove this once website gets real profile traffic
   { label: "Seeded", href: "/seeded", Icon: SeedIcon },
   // end-removal
