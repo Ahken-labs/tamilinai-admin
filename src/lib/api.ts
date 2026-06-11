@@ -286,6 +286,108 @@ export async function deleteSeedUser(userId: string): Promise<{ success: boolean
 
 // end-removal ─────────────────────────────────────────────────────────────────
 
+export type AdminUserDetail = {
+  id: string;
+  displayId: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  countryCode: string;
+  gender: string;
+  profileType: string;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
+  isProfileComplete: boolean;
+  isElite: boolean;
+  eliteExpiresAt: string | null;
+  isBlocked: boolean;
+  isOnBreak: boolean;
+  breakEndsAt: string | null;
+  isClosed: boolean;
+  closedAt: string | null;
+  closeReason: string | null;
+  trustBadge: boolean;
+  profileCompletionScore: number;
+  contactViewLimitOverride: number | null;
+  createdAt: string;
+  updatedAt: string;
+  profile: {
+    dateOfBirth: string | null;
+    maritalStatus: string | null;
+    heightCm: number | null;
+    weightKg: number | null;
+    education: string | null;
+    occupation: string | null;
+    religion: string | null;
+    caste: string | null;
+    country: string | null;
+    city: string | null;
+    aboutMe: string | null;
+    monthlyIncome: number | null;
+    incomeCurrency: string | null;
+    fatherOccupation: string | null;
+    motherOccupation: string | null;
+    brotherCount: number | null;
+    brothersMarried: number | null;
+    sisterCount: number | null;
+    sistersMarried: number | null;
+    dietHabit: string | null;
+    smokingHabit: string | null;
+    drinkingHabit: string | null;
+    physicalBuild: string | null;
+    residentStatus: string | null;
+    sector: string | null;
+    educationDetail: string | null;
+    languagesSpoken: string[] | null;
+    hobbies: string[] | null;
+    photoVisibility: string;
+    photoStatus: string;
+  } | null;
+};
+
+export async function getAdminUser(userId: string): Promise<AdminUserDetail> {
+  return apiFetch(`/users/${userId}`);
+}
+
+export async function setContactLimit(
+  userId: string,
+  limit: number | null,
+): Promise<{ message: string; contactViewLimitOverride: number | null }> {
+  return apiFetch(`/users/${userId}/contact-limit`, {
+    method: "PATCH",
+    body: JSON.stringify({ limit }),
+  });
+}
+
+export type AdminNotification = {
+  id: string;
+  type: string;
+  userId: string | null;
+  userName: string | null;
+  displayId: string | null;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+export async function sendAdminNotification(data: {
+  broadcast?: boolean;
+  userId?: string;
+  title: string;
+  message?: string;
+}): Promise<{ message: string; count?: number }> {
+  return apiFetch("/notifications", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getAdminNotifications(
+  page = 1,
+): Promise<{ notifications: AdminNotification[]; page: number; hasMore: boolean; unreadCount: number }> {
+  return apiFetch(`/notifications?page=${page}`);
+}
+
 export async function getAdminStats(): Promise<{
   totalUsers: number;
   blockedUsers: number;

@@ -1,10 +1,69 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { listUsers, blockUser, unblockUser, toggleElite, listClosedAccounts } from "../../../lib/api";
 import type { AdminListUser, ClosedUser } from "../../../lib/api";
 import Popup from "@/components/Popup";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+
+function ElitePlanDropdown({ value, onChange, disabled }: {
+  value: "basic" | "pro" | "max";
+  onChange: (v: "basic" | "pro" | "max") => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onMouseDown(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [open]);
+
+  const options: { value: "basic" | "pro" | "max"; label: string }[] = [
+    { value: "basic", label: "Basic" },
+    { value: "pro",   label: "Pro" },
+    { value: "max",   label: "Max" },
+  ];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium
+          transition-colors disabled:opacity-40 touch-manipulation
+          ${open ? "border-[#B31B38] bg-white text-[#0A0A0A]" : "border-[#E6E6E6] bg-white text-[#444] hover:border-[#CCCCCC]"}`}
+      >
+        {options.find((o) => o.value === value)?.label ?? "Basic"}
+        <svg viewBox="0 0 10 10" fill="none" className={`w-2.5 h-2.5 text-[#AAAAAA] transition-transform ${open ? "rotate-180" : ""}`}>
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-[calc(100%+3px)] z-50 min-w-[80px] rounded-[10px] border border-[#EBEBEB] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.10)]">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              className={`flex w-full items-center px-3 py-2 text-xs text-left transition-colors
+                first:rounded-t-[10px] last:rounded-b-[10px]
+                ${value === o.value ? "bg-[#FFF0F3] text-[#B31B38] font-semibold" : "text-[#222] hover:bg-[#F5F5F5]"}`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-GB", {
@@ -90,6 +149,7 @@ type PendingUserAction =
   | { type: "elite_remove"; userId: string; name: string };
 
 function AllUsersTab() {
+  const router = useRouter();
   const [users, setUsers]             = useState<AdminListUser[]>([]);
   const [loading, setLoading]         = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -253,7 +313,14 @@ function AllUsersTab() {
               ) : (
                 <>
                   {users.map((user) => (
-                    <tr key={user.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
+                    <tr
+                      key={user.id}
+                      className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        if ((e.target as HTMLElement).closest("button,select")) return;
+                        router.push(`/users/${user.id}`);
+                      }}
+                    >
                       <td className="px-5 py-3.5">
                         <p className="text-[13px] font-semibold text-[#0A0A0A]">{user.name}</p>
                         <p className="text-[11px] text-[#888]">{user.displayId}</p>
@@ -307,20 +374,12 @@ function AllUsersTab() {
                               {acting === `${user.id}_elite` ? "…" : "Remove Elite"}
                             </button>
                           ) : (
-                            <div className="flex items-center gap-1">
-                              <select
+                            <div className="flex items-center gap-1.5">
+                              <ElitePlanDropdown
                                 value={elitePlan[user.id] ?? "basic"}
-                                onChange={(e) =>
-                                  setElitePlan((p) => ({ ...p, [user.id]: e.target.value as "basic" | "pro" | "max" }))
-                                }
+                                onChange={(v) => setElitePlan((p) => ({ ...p, [user.id]: v }))}
                                 disabled={acting === `${user.id}_elite`}
-                                className="text-xs border border-[#E6E6E6] rounded-lg px-2 py-1.5 bg-white
-                                  text-[#222] outline-none disabled:opacity-40 cursor-pointer"
-                              >
-                                <option value="basic">Basic</option>
-                                <option value="pro">Pro</option>
-                                <option value="max">Max</option>
-                              </select>
+                              />
                               <button
                                 type="button"
                                 disabled={acting === `${user.id}_elite`}

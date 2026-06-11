@@ -9,6 +9,7 @@ import {
   type SeedUser,
 } from "@/lib/api";
 import Popup from "@/components/Popup";
+import { useToast } from "@/components/Toast";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import CountryCodeDropdown from "@/components/CountryCodeDropdown";
 import SearchableDropdown from "@/components/SearchableDropdown";
@@ -261,6 +262,7 @@ const EMPTY_FORM: FormState = {
 // ── Create form ───────────────────────────────────────────────────────────────
 
 function CreateForm({ onCreated }: { onCreated: () => void }) {
+  const { toast } = useToast();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -335,9 +337,12 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       setPhoto(null);
       setPhotoPreview(null);
       if (fileRef.current) fileRef.current.value = "";
+      toast({ type: "success", title: "Seed user created", message: form.name ? `${form.name} added successfully.` : undefined });
       onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create user.");
+      const msg = err instanceof Error ? err.message : "Failed to create user.";
+      setError(msg);
+      toast({ type: "error", title: "Failed to create", message: msg });
     } finally {
       setSaving(false);
     }
@@ -762,6 +767,7 @@ function SeedSkeleton() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function SeededPage() {
+  const { toast } = useToast();
   const [users, setUsers]             = useState<SeedUser[]>([]);
   const [loading, setLoading]         = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -807,12 +813,16 @@ export default function SeededPage() {
     if (!pendingDelete) return;
     setDeleting(true);
     try {
+      const name = pendingDelete.name;
       await deleteSeedUser(pendingDelete.id);
       setUsers((prev) => prev.filter((u) => u.id !== pendingDelete.id));
       setPendingDelete(null);
+      toast({ type: "success", title: "Profile deleted", message: `${name} has been removed.` });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Delete failed.");
+      const msg = err instanceof Error ? err.message : "Delete failed.";
+      setError(msg);
       setPendingDelete(null);
+      toast({ type: "error", title: "Delete failed", message: msg });
     } finally {
       setDeleting(false);
     }
