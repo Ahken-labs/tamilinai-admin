@@ -83,7 +83,7 @@ function ToastCard({ item, onRemove }: { item: ToastItem; onRemove: (id: string)
       style={{
         border: `1px solid ${col.border}`,
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(16px)",
+        transform: visible ? "translateY(0)" : "translateY(-16px)",
       }}
     >
       {/* Body */}
@@ -158,7 +158,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ toast }}>
       {children}
       {/* Portal-like fixed container */}
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2.5 items-end pointer-events-none">
+      <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-2.5 items-end pointer-events-none">
         {toasts.map((item) => (
           <ToastCard key={item.id} item={item} onRemove={remove} />
         ))}

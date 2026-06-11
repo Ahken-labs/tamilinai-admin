@@ -732,8 +732,8 @@ function SeedCard({ user, onDelete }: { user: SeedUser; onDelete: (user: SeedUse
         <button
           type="button"
           onClick={() => onDelete(user)}
-          className="w-full h-[34px] rounded-[8px] text-[12px] font-semibold text-red-600
-            border border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
+          className="w-full h-[34px] rounded-[8px] text-[12px] md:text-[14px] font-semibold text-[#B31B38]
+            border border-[#B31B38] hover:bg-red-50 transition-colors cursor-pointer"
         >
           Delete
         </button>
@@ -898,7 +898,7 @@ export default function SeededPage() {
         <div ref={sentinelRef} className="h-1" />
 
         {!hasMore && users.length > 0 && (
-          <p className="text-center text-[12px] text-[#CCCCCC] mt-4">All profiles loaded</p>
+          <p className="text-center text-[14px] md:text-[16px] text-[#CCCCCC] mt-4">All profiles loaded 🎉</p>
         )}
       </div>
 

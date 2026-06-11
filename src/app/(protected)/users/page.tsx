@@ -90,7 +90,7 @@ export default function UsersPage() {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium touch-manipulation ${
+            className={`px-5 py-2 rounded-lg text-[14px] md:text-[16px] font-medium touch-manipulation ${
               tab === t ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
             }`}
           >
@@ -261,12 +261,12 @@ function AllUsersTab() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="Search by email or phone…"
-          className="flex-1 border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-sm text-[#222]
+          className="flex-1 border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-[14px] md:text-[16px] text-[#222]
             placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
         />
         <button
           type="submit"
-          className="px-4 sm:px-5 py-2.5 bg-[#B31B38] text-white text-sm font-semibold rounded-xl
+          className="px-4 sm:px-5 py-2.5 bg-[#B31B38] text-white text-[14px] md:text-[16px] font-semibold rounded-xl
             hover:bg-[#9A1730] transition-colors shrink-0 touch-manipulation"
         >
           Search
@@ -294,11 +294,11 @@ function AllUsersTab() {
           <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">User</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Gender</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Status</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Joined</th>
-                <th className="text-right px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">User</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Gender</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Status</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Joined</th>
+                <th className="text-right px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -322,26 +322,26 @@ function AllUsersTab() {
                       }}
                     >
                       <td className="px-5 py-3.5">
-                        <p className="text-[13px] font-semibold text-[#0A0A0A]">{user.name}</p>
-                        <p className="text-[11px] text-[#888]">{user.displayId}</p>
+                        <p className="text-[12px] md:text-[14px] font-medium text-[#0A0A0A]">{user.name}</p>
+                        <p className="text-[12px] md:text-[14px] text-[#888]">{user.displayId}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="text-[13px] text-[#555] capitalize">
+                        <span className="text-[12px] md:text-[14px] text-[#555] capitalize">
                           {user.gender?.toLowerCase() ?? "—"}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex flex-wrap gap-1">
-                          {user.isElite    && <span className="px-2 py-0.5 rounded-full bg-[#FFF8E1] text-[#E65100] text-[10px] font-semibold">Elite</span>}
-                          {user.isBlocked  && <span className="px-2 py-0.5 rounded-full bg-[#FFF0F3] text-[#B31B38] text-[10px] font-semibold">Blocked</span>}
-                          {user.isClosed   && <span className="px-2 py-0.5 rounded-full bg-[#F2F2F2] text-[#6B6B6B] text-[10px] font-semibold">Closed</span>}
-                          {user.trustBadge && <span className="px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[#2E7D32] text-[10px] font-semibold">Verified</span>}
+                          {user.isElite    && <span className="px-2 py-0.5 rounded-full bg-[#FFF8E1] text-[#E65100] text-[12px] md:text-[14px] font-semibold">Elite</span>}
+                          {user.isBlocked  && <span className="px-2 py-0.5 rounded-full bg-[#FFF0F3] text-[#B31B38] text-[12px] md:text-[14px] font-semibold">Blocked</span>}
+                          {user.isClosed   && <span className="px-2 py-0.5 rounded-full bg-[#F2F2F2] text-[#6B6B6B] text-[12px] md:text-[14px] font-semibold">Closed</span>}
+                          {user.trustBadge && <span className="px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[#2E7D32] text-[12px] md:text-[14px] font-semibold">Verified</span>}
                           {!user.isElite && !user.isBlocked && !user.isClosed && !user.trustBadge &&
-                            <span className="text-[12px] text-[#CCCCCC]">—</span>}
+                            <span className="text-[12px] md:text-[14px] text-[#CCCCCC]">—</span>}
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="text-[12px] text-[#888]">{formatDate(user.createdAt)}</span>
+                        <span className="text-[12px] md:text-[14px] text-[#888]">{formatDate(user.createdAt)}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-2">
@@ -412,7 +412,7 @@ function AllUsersTab() {
       <div ref={sentinelRef} className="h-1" />
 
       {!hasMore && users.length > 0 && (
-        <p className="text-center text-[12px] text-[#CCCCCC] mt-4">All users loaded</p>
+        <p className="text-center text-[14px] md:text-[16px] text-[#CCCCCC] mt-4">All users loaded 🎉</p>
       )}
 
       <Popup
@@ -475,7 +475,7 @@ function ClosedAccountsTab() {
       </p>
 
       {error && (
-        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-sm text-[#B31B38]">
+        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-[12px] md:text-[14px] text-[#B31B38]">
           {error}
         </div>
       )}
@@ -485,11 +485,11 @@ function ClosedAccountsTab() {
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">User</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Contact</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Reason</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Closed</th>
-                <th className="text-left px-5 py-3 text-[11px] font-semibold text-[#888] uppercase tracking-wide">Days left</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">User</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Contact</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Reason</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Closed</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Days left</th>
               </tr>
             </thead>
             <tbody>
@@ -497,7 +497,7 @@ function ClosedAccountsTab() {
                 <ClosedSkeletonRows count={8} />
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-16 text-center text-sm text-[#888]">
+                  <td colSpan={5} className="px-5 py-16 text-center text-[14px] md:text-[16px] text-[#888]">
                     No closed accounts.
                   </td>
                 </tr>
@@ -506,20 +506,20 @@ function ClosedAccountsTab() {
                   {users.map((user) => (
                     <tr key={user.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
                       <td className="px-5 py-3.5">
-                        <p className="text-[13px] font-semibold text-[#0A0A0A]">{user.name}</p>
-                        <p className="text-[11px] text-[#888]">{user.displayId}</p>
+                        <p className="text-[12px] md:text-[14px] font-medium text-[#0A0A0A]">{user.name}</p>
+                        <p className="text-[12px] md:text-[14px] text-[#888]">{user.displayId}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className="text-[12px] text-[#444]">{user.email}</p>
+                        <p className="text-[12px] md:text-[14px] text-[#444]">{user.email}</p>
                         {user.phone && <p className="text-[12px] text-[#888] mt-0.5">{user.phone}</p>}
                       </td>
                       <td className="px-5 py-3.5 max-w-[220px]">
-                        <p className="text-[12px] text-[#444] line-clamp-2">
+                        <p className="text-[12px] md:text-[14px] text-[#444] line-clamp-2">
                           {user.closeReason ?? <span className="text-[#AAAAAA]">No reason given</span>}
                         </p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="text-[12px] text-[#888]">
+                        <span className="text-[12px] md:text-[14px] text-[#888]">
                           {user.closedAt ? formatDate(user.closedAt) : "—"}
                         </span>
                       </td>
