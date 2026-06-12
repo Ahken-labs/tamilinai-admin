@@ -332,12 +332,16 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       if (form.hobbies.length > 0) fd.append("hobbies", JSON.stringify(form.hobbies));
       if (photo) fd.append("photo", photo);
 
-      await createSeedUser(fd);
+      const result = await createSeedUser(fd);
       setForm(EMPTY_FORM);
       setPhoto(null);
       setPhotoPreview(null);
       if (fileRef.current) fileRef.current.value = "";
-      toast({ type: "success", title: "Seed user created", message: form.name ? `${form.name} added successfully.` : undefined });
+      if (result.warning) {
+        toast({ type: "error", title: "Profile created — photo failed", message: result.warning });
+      } else {
+        toast({ type: "success", title: "Seed user created", message: form.name ? `${form.name} added successfully.` : undefined });
+      }
       onCreated();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to create user.";

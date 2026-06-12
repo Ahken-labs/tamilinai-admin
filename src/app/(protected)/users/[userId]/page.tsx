@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getAdminUser, setContactLimit, blockUser, unblockUser, toggleElite } from "@/lib/api";
+import { getAdminUser, setContactLimit, blockUser, unblockUser, toggleElite, clearAboutMe } from "@/lib/api";
 import type { AdminUserDetail } from "@/lib/api";
 import { BackArrowIcon, EliteIcon, VerifiedIcon } from "@/assets/Icons";
 import Popup from "@/components/Popup";
 import { useToast } from "@/components/Toast";
+import Button from "@/components/Button";
 
 function formatDate(d: string | null | undefined): string {
   if (!d) return "—";
@@ -73,8 +74,8 @@ function ElitePlanDropdown({ value, onChange, disabled }: {
 
   const options: { value: "basic" | "pro" | "max"; label: string }[] = [
     { value: "basic", label: "Basic" },
-    { value: "pro",   label: "Pro" },
-    { value: "max",   label: "Max" },
+    { value: "pro", label: "Pro" },
+    { value: "max", label: "Max" },
   ];
 
   return (
@@ -83,7 +84,7 @@ function ElitePlanDropdown({ value, onChange, disabled }: {
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[14px] md:text-[16px] font-medium
           transition-colors disabled:opacity-40 touch-manipulation
           ${open ? "border-[#B31B38] bg-white text-[#0A0A0A]" : "border-[#E6E6E6] bg-white text-[#444] hover:border-[#CCCCCC]"}`}
       >
@@ -99,7 +100,7 @@ function ElitePlanDropdown({ value, onChange, disabled }: {
               key={o.value}
               type="button"
               onClick={() => { onChange(o.value); setOpen(false); }}
-              className={`flex w-full items-center px-3 py-2 text-xs text-left transition-colors
+              className={`flex w-full items-center px-3 py-1.5 text-[14px] md:text-[16px] text-left transition-colors
                 first:rounded-t-[10px] last:rounded-b-[10px]
                 ${value === o.value ? "bg-[#FFF0F3] text-[#B31B38] font-semibold" : "text-[#222] hover:bg-[#F5F5F5]"}`}
             >
@@ -132,19 +133,19 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Badge({ label, color }: { label: string; color: "green" | "red" | "orange" | "gray" | "blue" | "brown" }) {
   const cls = {
-    green:  "bg-[#F0FDF4] text-[#2E7D32]",
-    brown:  "bg-[#FFFFFF] text-[#8D5900]",
-    red:    "bg-[#FFF0F3] text-[#B31B38]",
+    green: "bg-[#F0FDF4] text-[#2E7D32]",
+    brown: "bg-[#FFFFFF] text-[#8D5900]",
+    red: "bg-[#FFF0F3] text-[#B31B38]",
     orange: "bg-[#FFF3DC] text-[#A97216]",
-    gray:   "bg-[#F2F2F2] text-[#6B6B6B]",
-    blue:   "bg-[#EFF6FF] text-[#1D4ED8]",
+    gray: "bg-[#F2F2F2] text-[#6B6B6B]",
+    blue: "bg-[#EFF6FF] text-[#1D4ED8]",
   }[color];
 
   const icon =
-    label === "Elite"    ? <EliteIcon    className="w-5 h-5 shrink-0" /> :
-    label === "Verified" ? <VerifiedIcon className="w-5 h-5 shrink-0" /> :
-    label === "Complete" ? <svg viewBox="0 0 12 12" fill="none" className="w-3.5 h-3.5 shrink-0"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg> :
-    null;
+    label === "Elite" ? <EliteIcon className="w-5 h-5 shrink-0" /> :
+      label === "Verified" ? <VerifiedIcon className="w-5 h-5 shrink-0" /> :
+        label === "Complete" ? <svg viewBox="0 0 12 12" fill="none" className="w-3.5 h-3.5 shrink-0"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> :
+          null;
 
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[14px] font-semibold ${cls}`}>
@@ -154,7 +155,7 @@ function Badge({ label, color }: { label: string; color: "green" | "red" | "oran
 }
 
 type PopupAction =
-  | { type: "block" | "unblock" | "elite_remove" }
+  | { type: "block" | "unblock" | "elite_remove" | "clear_about" }
   | { type: "elite_grant"; plan: "basic" | "pro" | "max" }
   | { type: "contact_limit"; limit: number | null };
 
@@ -163,16 +164,16 @@ export default function UserDetailPage() {
   const router = useRouter();
 
   const { toast } = useToast();
-  const [user, setUser]       = useState<AdminUserDetail | null>(null);
+  const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState("");
-  const [acting, setActing]   = useState(false);
+  const [error, setError] = useState("");
+  const [acting, setActing] = useState(false);
   const [actionError, setActionError] = useState("");
 
   // Contact limit UI
-  const [limitInput, setLimitInput]     = useState("");
-  const [pendingAction, setPending]     = useState<PopupAction | null>(null);
-  const [elitePlan, setElitePlan]       = useState<"basic" | "pro" | "max">("basic");
+  const [limitInput, setLimitInput] = useState("");
+  const [pendingAction, setPending] = useState<PopupAction | null>(null);
+  const [elitePlan, setElitePlan] = useState<"basic" | "pro" | "max">("basic");
 
   useEffect(() => {
     setLoading(true);
@@ -208,6 +209,10 @@ export default function UserDetailPage() {
         await toggleElite(user.id, false);
         setUser((u) => u ? { ...u, isElite: false } : u);
         toast({ type: "success", title: "Elite removed", message: `${user.name} reverted to free plan.` });
+      } else if (act.type === "clear_about") {
+        await clearAboutMe(user.id);
+        setUser((u) => u ? { ...u, profile: u.profile ? { ...u.profile, aboutMe: null } : u.profile } : u);
+        toast({ type: "success", title: "About Me cleared", message: `${user.name}'s About Me has been cleared.` });
       } else if (act.type === "contact_limit") {
         const res = await setContactLimit(user.id, act.limit);
         setUser((u) => u ? { ...u, contactViewLimitOverride: res.contactViewLimitOverride } : u);
@@ -236,6 +241,8 @@ export default function UserDetailPage() {
       return { title: "Remove Elite access?", subtitle: `${user.name} will lose Elite access and revert to the free plan.`, label: "Yes, remove", danger: true };
     if (pendingAction.type === "elite_grant")
       return { title: `Grant Elite ${ucFirst(pendingAction.plan)}?`, subtitle: `${user.name} will receive Elite ${ucFirst(pendingAction.plan)} access.`, label: "Yes, grant", danger: false };
+    if (pendingAction.type === "clear_about")
+      return { title: "Clear About Me?", subtitle: `This will permanently erase ${user.name}'s About Me. They can rewrite it anytime.`, label: "Yes, clear", danger: true };
     if (pendingAction.type === "contact_limit") {
       const lim = pendingAction.limit;
       return {
@@ -313,10 +320,10 @@ export default function UserDetailPage() {
             <>
               <div className="w-px h-8 bg-[#EEEEEE] hidden sm:block" />
               <div className="flex flex-wrap gap-1.5 items-center">
-                {user.isElite    && <Badge label="Elite"    color="orange" />}
-                {user.isBlocked  && <Badge label="Blocked"  color="red" />}
-                {user.isClosed   && <Badge label="Closed"   color="gray" />}
-                {user.isOnBreak  && <Badge label="On Break" color="blue" />}
+                {user.isElite && <Badge label="Elite" color="orange" />}
+                {user.isBlocked && <Badge label="Blocked" color="red" />}
+                {user.isClosed && <Badge label="Closed" color="gray" />}
+                {user.isOnBreak && <Badge label="On Break" color="blue" />}
                 {user.trustBadge && <Badge label="Verified" color="brown" />}
                 {user.isProfileComplete && <Badge label="Complete" color="green" />}
               </div>
@@ -354,26 +361,14 @@ export default function UserDetailPage() {
           {user.isClosed && user.closeReason && <InfoRow label="Close reason" value={user.closeReason} />}
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
+            <Button pink className={`!py-1.5 ${user.isBlocked ? "!bg-[#B31B38] !text-[#FFFFFF] !hover:bg-[#8E162D]" : "!bg-[#FFF0F3] !text-[#B31B38] !hover:bg-[#FFE0E7]"}`}
+              text={user.isBlocked ? "Unblock" : "Block"}
+              onPress={() => setPending(user.isBlocked ? { type: "unblock" } : { type: "block" })}
               disabled={acting}
-              onClick={() => setPending(user.isBlocked ? { type: "unblock" } : { type: "block" })}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40
-                ${user.isBlocked ? "bg-[#F0FDF4] text-[#2E7D32] hover:bg-[#DCFCE7]" : "bg-[#FFF0F3] text-[#B31B38] hover:bg-[#FFE0E7]"}`}
-            >
-              {user.isBlocked ? "Unblock" : "Block"}
-            </button>
-
+            />
             {user.isElite ? (
-              <button
-                type="button"
-                disabled={acting}
-                onClick={() => setPending({ type: "elite_remove" })}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40
-                  bg-[#FFF8E1] text-[#E65100] hover:bg-[#FEF3C7]"
-              >
-                Remove Elite
-              </button>
+              <Button onPress={() => setPending({ type: "elite_remove" })} disabled={acting} className="!py-1.5" white text="Remove Elite" />
+
             ) : (
               <div className="flex items-center gap-1.5">
                 <ElitePlanDropdown
@@ -381,15 +376,7 @@ export default function UserDetailPage() {
                   onChange={(v) => setElitePlan(v)}
                   disabled={acting}
                 />
-                <button
-                  type="button"
-                  disabled={acting}
-                  onClick={() => setPending({ type: "elite_grant", plan: elitePlan })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40
-                    bg-[#F5F5F5] text-[#555] hover:bg-[#EEEEEE]"
-                >
-                  Grant Elite
-                </button>
+              <Button onPress={() => setPending({ type: "elite_grant", plan: elitePlan })} disabled={acting} className="!py-1.5" white text="Grant Elite" />
               </div>
             )}
           </div>
@@ -449,7 +436,13 @@ export default function UserDetailPage() {
         {p?.aboutMe && (
           <div className="lg:col-span-2">
             <SectionCard title="About Me">
-              <p className="text-[14px] md:text-[16px] text-[#222] leading-[1.7] whitespace-pre-wrap">{p.aboutMe}</p>
+              <p className="text-[14px] md:text-[16px] text-[#222] leading-[1.7] whitespace-pre-wrap mb-4">{p.aboutMe}</p>
+              <div className="justify-end flex">
+                <Button
+                  disabled={acting}
+                  onPress={() => setPending({ type: "clear_about" })}
+                  secondary sub text="Clear About Me" />
+              </div>
             </SectionCard>
           </div>
         )}
@@ -475,25 +468,14 @@ export default function UserDetailPage() {
                   focus:border-[#B31B38] transition-colors bg-white [appearance:textfield]
                   [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <button
-                type="button"
+              <Button
                 disabled={acting || !limitInput || isNaN(Number(limitInput)) || Number(limitInput) < 1}
-                onClick={() => setPending({ type: "contact_limit", limit: Number(limitInput) })}
-                className="px-4 py-2 rounded-xl bg-[#B31B38] text-white text-sm font-semibold
-                  hover:bg-[#9A1730] disabled:opacity-40 transition-colors"
-              >
-                Set limit
-              </button>
+                onPress={() => setPending({ type: "contact_limit", limit: Number(limitInput) })}
+                className="!py-2" text="Set limit" />
               {user.contactViewLimitOverride != null && (
-                <button
-                  type="button"
-                  disabled={acting}
-                  onClick={() => setPending({ type: "contact_limit", limit: null })}
-                  className="px-4 py-2 rounded-xl border border-[#E6E6E6] text-sm text-[#6B6B6B]
-                    hover:bg-[#F2F2F2] disabled:opacity-40 transition-colors"
-                >
-                  Reset to default
-                </button>
+                <Button white className="!py-2"
+                  disabled={acting} onPress={() => setPending({ type: "contact_limit", limit: null })}
+                  text="Reset to default" />
               )}
             </div>
           </SectionCard>
@@ -507,8 +489,8 @@ export default function UserDetailPage() {
         title={popupProps.title}
         subtitle={popupProps.subtitle}
         buttons={[
-          { label: "Cancel",           onClick: () => setPending(null), variant: "secondary" },
-          { label: popupProps.label,   onClick: executeAction,          variant: popupProps.danger ? "danger" : "primary" },
+          { label: "Cancel", onClick: () => setPending(null), variant: "secondary" },
+          { label: popupProps.label, onClick: executeAction, variant: popupProps.danger ? "danger" : "primary" },
         ]}
       />
     </>
