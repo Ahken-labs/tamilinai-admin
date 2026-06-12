@@ -107,6 +107,10 @@ export async function unblockUser(userId: string): Promise<{ message: string }> 
   return apiFetch(`/users/${userId}/unblock`, { method: "POST" });
 }
 
+export async function clearAboutMe(userId: string): Promise<{ message: string }> {
+  return apiFetch(`/users/${userId}/clear-about-me`, { method: "POST" });
+}
+
 export async function toggleElite(
   userId: string,
   elite: boolean,
@@ -259,7 +263,7 @@ export async function listSeedUsers(page = 1): Promise<{ users: SeedUser[]; page
   return apiFetch(`/users/seeded?page=${page}`);
 }
 
-export async function createSeedUser(formData: FormData): Promise<{ user: SeedUser }> {
+export async function createSeedUser(formData: FormData): Promise<{ user: SeedUser; warning?: string }> {
   const token = getToken();
   const res = await fetch(`${BASE}/api/admin/users/seed`, {
     method: "POST",

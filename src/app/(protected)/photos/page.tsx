@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { listPendingPhotos, reviewPhoto } from "../../../lib/api";
 import type { PendingPhoto } from "../../../lib/api";
 import Popup from "@/components/Popup";
+import Button from "@/components/Button";
+import { useToast } from "@/components/Toast";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -22,11 +24,13 @@ type PendingAction = {
 };
 
 export default function PhotosPage() {
-  const [photos, setPhotos]   = useState<PendingPhoto[]>([]);
+  const [photos, setPhotos] = useState<PendingPhoto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [acting, setActing]   = useState<string | null>(null);
-  const [error, setError]     = useState("");
+  const [acting, setActing] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [pending, setPending] = useState<PendingAction | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
@@ -51,8 +55,15 @@ export default function PhotosPage() {
     try {
       await reviewPhoto(reviewId, action);
       setPhotos((prev) => prev.filter((p) => p.reviewId !== reviewId));
+      toast({
+        type: "success",
+        title: action === "approve" ? "Photo approved" : "Photo denied",
+        message: `${pending?.userName ?? "User"}'s photo has been ${action === "approve" ? "approved" : "denied"}.`,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Action failed");
+      const msg = err instanceof Error ? err.message : "Action failed";
+      setError(msg);
+      toast({ type: "error", title: "Action failed", message: msg });
     } finally {
       setActing(null);
     }
@@ -68,8 +79,8 @@ export default function PhotosPage() {
             {loading
               ? "Loading…"
               : photos.length === 0
-              ? "All caught up"
-              : `${photos.length} pending ${photos.length === 1 ? "submission" : "submissions"}`}
+                ? "All caught up"
+                : `${photos.length} pending ${photos.length === 1 ? "submission" : "submissions"}`}
           </p>
         </div>
         {!loading && (
@@ -110,7 +121,7 @@ export default function PhotosPage() {
         <div className="flex flex-col items-center justify-center py-28 text-center">
           <div className="w-14 h-14 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M5 13l4 4L19 7" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 13l4 4L19 7" stroke="#2E7D32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <p className="text-[15px] font-semibold text-[#0A0A0A]">All caught up!</p>
@@ -128,9 +139,10 @@ export default function PhotosPage() {
                 <img
                   src={photo.photoUrl}
                   alt={photo.userName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-zoom-in"
                   draggable={false}
                   onContextMenu={(e) => e.preventDefault()}
+                  onClick={() => setLightboxUrl(photo.photoUrl)}
                 />
                 {acting === photo.reviewId && (
                   <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
@@ -143,7 +155,7 @@ export default function PhotosPage() {
                 <p className="text-[11px] text-[#888]">{photo.displayId}</p>
                 <p className="text-[11px] text-[#BBBBBB] mt-0.5">{timeAgo(photo.submittedAt)}</p>
                 <div className="flex gap-1.5 mt-3">
-                  <button
+                  {/* <button
                     type="button"
                     disabled={acting === photo.reviewId}
                     onClick={() => setPending({ reviewId: photo.reviewId, userName: photo.userName, action: "approve" })}
@@ -151,8 +163,12 @@ export default function PhotosPage() {
                       hover:bg-[#DCFCE7] active:bg-[#DCFCE7] disabled:opacity-40 transition-colors touch-manipulation"
                   >
                     Approve
-                  </button>
-                  <button
+                  </button> */}
+                  <Button className="!py-2" text="Approve"
+                    disabled={acting === photo.reviewId}
+                    onPress={() => setPending({ reviewId: photo.reviewId, userName: photo.userName, action: "approve" })}
+                  />
+                  {/* <button
                     type="button"
                     disabled={acting === photo.reviewId}
                     onClick={() => setPending({ reviewId: photo.reviewId, userName: photo.userName, action: "deny" })}
@@ -160,11 +176,45 @@ export default function PhotosPage() {
                       hover:bg-[#FFE0E7] active:bg-[#FFE0E7] disabled:opacity-40 transition-colors touch-manipulation"
                   >
                     Deny
-                  </button>
+                  </button> */}
+                  <Button white text="Deny" className="!py-2 flex-1"
+                    disabled={acting === photo.reviewId}
+                    onPress={() => setPending({ reviewId: photo.reviewId, userName: photo.userName, action: "deny" })}
+
+                  />
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm px-4"
+          onClick={() => setLightboxUrl(null)}
+          style={{ animation: "fadeIn 0.2s ease" }}
+        >
+          <style>{`
+            @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+            @keyframes zoomIn { from { transform: scale(0.85); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+          `}</style>
+          <img
+            src={lightboxUrl}
+            alt="Full size preview"
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[90vw] w-auto h-auto object-contain shadow-2xl"
+            style={{ animation: "zoomIn 0.25s cubic-bezier(0.34,1.56,0.64,1)" }}
+          />
+          <button
+            className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white text-lg transition-colors"
+            onClick={() => setLightboxUrl(null)}
+            aria-label="Close"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -178,9 +228,9 @@ export default function PhotosPage() {
             : `${pending?.userName}'s photo will be rejected. They can re-upload a new one.`
         }
         buttons={[
-          { label: "Cancel",       onClick: () => setPending(null), variant: "secondary" },
+          { label: "Cancel", onClick: () => setPending(null), variant: "secondary" },
           {
-            label:   pending?.action === "approve" ? "Yes, approve" : "Yes, deny",
+            label: pending?.action === "approve" ? "Yes, approve" : "Yes, deny",
             onClick: confirmReview,
             variant: pending?.action === "approve" ? "primary" : "danger",
           },
