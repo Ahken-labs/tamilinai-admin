@@ -22,7 +22,7 @@ export default function Page() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem("admin_token")) {
-      router.replace("/users");
+      router.replace("/dashboard");
     }
   }, [router]);
 

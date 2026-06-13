@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { listPendingPhotos, reviewPhoto } from "../../../lib/api";
 import type { PendingPhoto } from "../../../lib/api";
 import Popup from "@/components/Popup";
 import Button from "@/components/Button";
 import { useToast } from "@/components/Toast";
+
+let photosCache: PendingPhoto[] | null = null;
+export function clearPhotosCache() { photosCache = null; }
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -24,19 +27,21 @@ type PendingAction = {
 };
 
 export default function PhotosPage() {
-  const [photos, setPhotos] = useState<PendingPhoto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [photos, setPhotos] = useState<PendingPhoto[]>(photosCache ?? []);
+  const [loading, setLoading] = useState(photosCache === null);
   const [acting, setActing] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const didMount = useRef(false);
 
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const res = await listPendingPhotos();
+      photosCache = res.reviews;
       setPhotos(res.reviews);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load photos");
@@ -45,7 +50,12 @@ export default function PhotosPage() {
     }
   }, []);
 
-  useEffect(() => { fetchPhotos(); }, [fetchPhotos]);
+  useEffect(() => {
+    if (didMount.current) return;
+    didMount.current = true;
+    if (photosCache !== null) return;
+    fetchPhotos();
+  }, [fetchPhotos]);
 
   async function confirmReview() {
     if (!pending) return;
@@ -54,6 +64,7 @@ export default function PhotosPage() {
     setActing(reviewId);
     try {
       await reviewPhoto(reviewId, action);
+      photosCache = photosCache?.filter((p) => p.reviewId !== reviewId) ?? null;
       setPhotos((prev) => prev.filter((p) => p.reviewId !== reviewId));
       toast({
         type: "success",

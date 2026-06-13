@@ -11,9 +11,10 @@
 }
 
 html { scroll-behavior: smooth; }
+*, *::before, *::after { font-family: inherit; }
 
 body {
-  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  font-family: 'Poppins';
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
@@ -51,3 +52,9 @@ body {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Thin scrollbar for tab bars */
+.tab-scrollbar { scrollbar-width: thin; scrollbar-color: #D5D5D5 transparent; }
+.tab-scrollbar::-webkit-scrollbar { height: 3px; }
+.tab-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.tab-scrollbar::-webkit-scrollbar-thumb { background: #D5D5D5; border-radius: 99px; }

@@ -17,7 +17,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8F5F2] flex items-center justify-center font-poppins ">
         <div className="flex flex-col items-center gap-3">
           <div className="w-7 h-7 border-2 border-[#B31B38] border-t-transparent rounded-full animate-spin"/>
           <span className="text-[13px] text-[#888888]">Loading…</span>
@@ -28,7 +28,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   return (
     <ToastProvider>
-      <div className="flex h-screen overflow-hidden bg-[#FAFAFA]">
+      <div className="flex h-screen overflow-hidden bg-[#F8F5F2] font-poppins ">
         <AdminSidebar/>
         {/* pt-[56px] accounts for the mobile fixed top bar; removed on lg */}
         <main className="flex-1 overflow-y-auto pt-[56px] sm:pt-0">

@@ -6,6 +6,8 @@ import { getAdminNotifications, sendAdminNotification } from "@/lib/api";
 import type { AdminNotification } from "@/lib/api";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import Popup from "@/components/Popup";
+import TabBar from "@/components/TabBar";
+import SubTabBar from "@/components/SubTabBar";
 import { useToast } from "@/components/Toast";
 
 function formatDateTime(d: string): string {
@@ -150,37 +152,28 @@ export default function NotificationsPage() {
       </div>
 
       {/* Tab toggle */}
-      <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 w-fit ">
-        {([["send", "Send Notification"], ["events", "System Events"]] as [PageTab, string][]).map(([t, label]) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-[14px] md:text-[16px] font-medium transition-colors touch-manipulation ${
-              tab === t ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <TabBar
+        tabs={[
+          { key: "send", label: "Send Notification" },
+          { key: "events", label: "System Events" },
+        ]}
+        active={tab}
+        onChange={(k) => setTab(k as PageTab)}
+      />
 
       {/* ── Send tab ───────────────────────────────────────────────────────── */}
       {tab === "send" && (
         <div className="bg-white rounded-2xl border border-[#EEEEEE] p-5 sm:p-6 max-w-xl">
-          <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 mb-5">
-            {(["specific", "broadcast"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => { setMode(m); setSendError(""); }}
-                className={`flex-1 py-1.5 rounded-lg text-[14px] md:text-[16px] font-medium transition-colors touch-manipulation ${
-                  mode === m ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
-                }`}
-              >
-                {m === "specific" ? "Specific user" : "Broadcast"}
-              </button>
-            ))}
+          <div className="justify-center flex">
+          <SubTabBar
+            tabs={[
+              { key: "specific",  label: "Specific user" },
+              { key: "broadcast", label: "Broadcast" },
+            ]}
+            active={mode}
+            onChange={(m) => { setMode(m as Mode); setSendError(""); }}
+            className="mb-5"
+          />
           </div>
 
           <div className="space-y-0">

@@ -25,6 +25,7 @@ export type AdminListUser = {
   isElite: boolean;
   isBlocked: boolean;
   isClosed: boolean;
+  isOnBreak: boolean;
   isProfileComplete: boolean;
   trustBadge: boolean;
   profileCompletionScore: number;
@@ -93,10 +94,12 @@ export async function reviewPhoto(
 
 export async function listUsers(
   page: number,
-  search?: string
+  search?: string,
+  filter?: "blocked" | "elite" | "on_break",
 ): Promise<{ users: AdminListUser[]; page: number; hasMore: boolean }> {
   const params = new URLSearchParams({ page: String(page) });
   if (search) params.set("search", search);
+  if (filter) params.set("filter", filter);
   return apiFetch(`/users?${params}`);
 }
 
@@ -392,13 +395,52 @@ export async function getAdminNotifications(
   return apiFetch(`/notifications?page=${page}`);
 }
 
-export async function getAdminStats(): Promise<{
+export type AdminStats = {
   totalUsers: number;
   blockedUsers: number;
   eliteUsers: number;
   closedUsers: number;
+  onBreakUsers: number;
   pendingPhotos: number;
   trustBadgeUsers: number;
-}> {
+  usersLast7Days: number;
+  usersLast30Days: number;
+  eliteLast7Days: number;
+  eliteLast30Days: number;
+  activeUsersLive: number;
+  inactiveUsers45d: number;
+  inactiveUsers7d: number;
+  dailyActiveHistory: { date: string; count: number }[];
+};
+
+export async function getAdminStats(): Promise<AdminStats> {
   return apiFetch("/stats");
+}
+
+export type InactiveUser = {
+  id: string;
+  displayId: string;
+  name: string;
+  gender: string;
+  countryCode: string;
+  phone: string | null;
+  lastActiveAt: string;
+  inactiveDays: number;
+  inactivityWarningSentAt: string | null;
+  calledAt: string | null;
+  callNote: string | null;
+};
+
+export async function listInactiveUsers(days = 45): Promise<{ users: InactiveUser[] }> {
+  return apiFetch(`/users/inactive?days=${days}`);
+}
+
+export async function markUserCalled(
+  userId: string,
+  callNote?: string,
+): Promise<{ success: boolean }> {
+  return apiFetch(`/users/${userId}/called`, {
+    method: "PATCH",
+    body: JSON.stringify({ callNote }),
+  });
 }
