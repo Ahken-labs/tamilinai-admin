@@ -7,6 +7,8 @@ import {
 } from "../../../lib/api";
 import type { AdminSubscription, AdminRefundRequest, AdminPromoCode } from "../../../lib/api";
 import Popup from "@/components/Popup";
+import TabBar from "@/components/TabBar";
+import SubTabBar from "@/components/SubTabBar";
 import { useToast } from "@/components/Toast";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
@@ -199,17 +201,16 @@ function RefundsTab() {
 
   return (
     <>
-      {/* Sub-filter — scrollable on mobile */}
-      <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 mb-6">
-        {["pending", "approved", "rejected"].map((s) => (
-          <button key={s} type="button" onClick={() => setFilter(s)}
-            className={`flex-1 py-2 rounded-lg text-[14px] md:text-[16px] font-medium capitalize touch-manipulation ${
-              filter === s ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
-            }`}>
-            {s}
-          </button>
-        ))}
-      </div>
+      <SubTabBar
+        tabs={[
+          { key: "pending",  label: "Pending" },
+          { key: "approved", label: "Approved" },
+          { key: "rejected", label: "Rejected" },
+        ]}
+        active={filter}
+        onChange={setFilter}
+        className="mb-6"
+      />
 
       {error && (
         <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-[12px] md:text-[14px] text-[#B31B38]">
@@ -603,17 +604,11 @@ function PromoCodesTab() {
 export default function BillingPage() {
   const [tab, setTab] = useState<Tab>("subscriptions");
 
-  const TAB_LABELS: Record<Tab, string> = {
-    subscriptions: "Subscriptions",
-    refunds:       "Refund Requests",
-    promo:         "Promo Codes",
-  };
-
-  const TAB_SHORT: Record<Tab, string> = {
-    subscriptions: "Subs",
-    refunds:       "Refunds",
-    promo:         "Promo",
-  };
+  const BILLING_TABS = [
+    { key: "subscriptions", label: "Subscriptions", shortLabel: "Subs" },
+    { key: "refunds",       label: "Refund Requests", shortLabel: "Refunds" },
+    { key: "promo",         label: "Promo Codes", shortLabel: "Promo" },
+  ];
 
   return (
     <div>
@@ -621,21 +616,7 @@ export default function BillingPage() {
         <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">Billing</h1>
       </div>
 
-      <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 mb-6">
-        {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-lg text-[14px] md:text-[16px] font-medium touch-manipulation ${
-              tab === t ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
-            }`}
-          >
-            <span className="sm:hidden">{TAB_SHORT[t]}</span>
-            <span className="hidden sm:inline">{TAB_LABELS[t]}</span>
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={BILLING_TABS} active={tab} onChange={(k) => setTab(k as Tab)} className="mb-6" />
 
       {tab === "subscriptions" && <SubscriptionsTab />}
       {tab === "refunds"       && <RefundsTab />}

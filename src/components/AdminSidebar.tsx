@@ -11,11 +11,15 @@ import {
   BellIcon,
   SignOutIcon,
   MenuIcon,
+  DashboardIcon,
   SeedIcon, // remove this once website gets real profile traffic
 } from "@/assets/Icons";
 import Popup from "./Popup";
+import { clearUsersCache } from "@/app/(protected)/users/page";
+import { clearPhotosCache } from "@/app/(protected)/photos/page";
 
 const NAV = [
+  { label: "Dashboard", href: "/dashboard", Icon: DashboardIcon },
   { label: "Users", href: "/users", Icon: UsersIcon },
   { label: "Photos", href: "/photos", Icon: PhotoIcon },
   { label: "Billing", href: "/billing", Icon: BillingIcon },
@@ -44,6 +48,8 @@ export default function AdminSidebar() {
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   function handleLogout() {
+    clearUsersCache();
+    clearPhotosCache();
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_user");
     router.push("/");
@@ -59,7 +65,7 @@ export default function AdminSidebar() {
 
       {/* Logo */}
       <div className="h-[60px] flex items-center px-4 md:px-5 border-b border-[#EBEBEB] shrink-0">
-        <Link href="/users" className="flex items-center gap-2.5 select-none">
+        <Link href="/dashboard" className="flex items-center gap-2.5 select-none">
           <div className="w-10 h-10 pr-0.5 pb-0.5 rounded-[20px] bg-[#BA0453] text-white
             flex items-center justify-center shrink-0">
             <InaiMarkIcon size={22} />
@@ -147,7 +153,7 @@ export default function AdminSidebar() {
           <MenuIcon className="w-5 h-5" />
         </button>
         <Link
-          href="/users"
+          href="/dashboard"
           className="flex items-center gap-2 select-none flex-1"
         >
           <div className="w-8 h-8 pr-0.5 pb-0.5 rounded-[20px] bg-[#BA0453] text-white flex items-center justify-center shrink-0">

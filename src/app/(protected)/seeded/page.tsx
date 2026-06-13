@@ -835,7 +835,7 @@ export default function SeededPage() {
   const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3";
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-screen">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-0 sm:py-0">
 
         <div className="flex items-center justify-between mb-6 gap-4">

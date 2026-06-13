@@ -1,11 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { listUsers, blockUser, unblockUser, toggleElite, listClosedAccounts } from "../../../lib/api";
-import type { AdminListUser, ClosedUser } from "../../../lib/api";
+import { useRouter, useSearchParams } from "next/navigation";
+import { listUsers, blockUser, unblockUser, toggleElite, listClosedAccounts, listInactiveUsers, markUserCalled } from "../../../lib/api";
+import type { AdminListUser, ClosedUser, InactiveUser } from "../../../lib/api";
 import Popup from "@/components/Popup";
+import TabBar from "@/components/TabBar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+
+// ── Module-level cache (persists across tab switches, cleared on logout) ───────
+type CacheEntry = { users: AdminListUser[]; page: number; hasMore: boolean };
+const usersCache = new Map<string, CacheEntry>();
+export function clearUsersCache() { usersCache.clear(); }
 
 function ElitePlanDropdown({ value, onChange, disabled }: {
   value: "basic" | "pro" | "max";
@@ -73,36 +79,17 @@ function formatDate(dateStr: string): string {
 
 function ucFirst(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-type Tab = "all" | "closed";
+type Tab = "all" | "blocked" | "elite" | "on_break" | "closed" | "inactive45" | "inactive7";
 
-export default function UsersPage() {
-  const [tab, setTab] = useState<Tab>("all");
-
-  return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">User Management</h1>
-      </div>
-
-      <div className="flex gap-1 bg-[#F2F2F2] rounded-xl p-1 w-fit mb-6">
-        {(["all", "closed"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`px-5 py-2 rounded-lg text-[14px] md:text-[16px] font-medium touch-manipulation ${
-              tab === t ? "bg-white text-[#0A0A0A] shadow-sm" : "text-[#6B6B6B] hover:text-[#222]"
-            }`}
-          >
-            {t === "all" ? "All Users" : "Closed Accounts"}
-          </button>
-        ))}
-      </div>
-
-      {tab === "all" ? <AllUsersTab /> : <ClosedAccountsTab />}
-    </div>
-  );
-}
+const TABS: { key: Tab; label: string }[] = [
+  { key: "all",       label: "All Users" },
+  { key: "blocked",   label: "Blocked" },
+  { key: "elite",     label: "Elite" },
+  { key: "on_break",  label: "On Break" },
+  { key: "closed",    label: "Closed" },
+  { key: "inactive45", label: "Inactive 45d+" },
+  { key: "inactive7",  label: "Inactive 7d" },
+];
 
 // ── Skeleton rows ─────────────────────────────────────────────────────────────
 
@@ -148,15 +135,18 @@ type PendingUserAction =
   | { type: "elite_grant";  userId: string; name: string; plan: "basic" | "pro" | "max" }
   | { type: "elite_remove"; userId: string; name: string };
 
-function AllUsersTab() {
+function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) {
   const router = useRouter();
-  const [users, setUsers]             = useState<AdminListUser[]>([]);
-  const [loading, setLoading]         = useState(true);
+  const cacheKey = filter ?? "all";
+  const cached = usersCache.get(cacheKey);
+
+  const [users, setUsers]             = useState<AdminListUser[]>(cached?.users ?? []);
+  const [loading, setLoading]         = useState(!cached);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [appliedSearch, setApplied]   = useState("");
-  const [page, setPage]               = useState(1);
-  const [hasMore, setHasMore]         = useState(false);
+  const [page, setPage]               = useState(cached?.page ?? 1);
+  const [hasMore, setHasMore]         = useState(cached?.hasMore ?? false);
   const [acting, setActing]           = useState<string | null>(null);
   const [elitePlan, setElitePlan]     = useState<Record<string, "basic" | "pro" | "max">>({});
   const [error, setError]             = useState("");
@@ -166,18 +156,27 @@ function AllUsersTab() {
     if (append) setLoadingMore(true); else setLoading(true);
     setError("");
     try {
-      const res = await listUsers(pg, q || undefined);
-      setUsers((prev) => append ? [...prev, ...res.users] : res.users);
+      const res = await listUsers(pg, q || undefined, filter);
+      setUsers((prev) => {
+        const merged = append ? [...prev, ...res.users] : res.users;
+        if (!q) usersCache.set(cacheKey, { users: merged, page: pg, hasMore: res.hasMore });
+        return merged;
+      });
       setHasMore(res.hasMore);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load users");
     } finally {
       if (append) setLoadingMore(false); else setLoading(false);
     }
-  }, []);
+  }, [filter, cacheKey]);
 
-  // Reset and load page 1 whenever search changes
+  // Skip initial fetch if we have cached data, only fetch when search changes
+  const didMount = useRef(false);
   useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      if (cached) return; // use cache, skip fetch
+    }
     setPage(1);
     setUsers([]);
     fetchUsers(1, appliedSearch, false);
@@ -289,7 +288,7 @@ function AllUsersTab() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-[#EEEEEE] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#EAEAEA] overflow-hidden">
         <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
           <table className="w-full min-w-[640px]">
             <thead>
@@ -315,14 +314,14 @@ function AllUsersTab() {
                   {users.map((user) => (
                     <tr
                       key={user.id}
-                      className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                      className="border-b border-[#EAEAEA] hover:bg-[#EAEAEA] transition-colors cursor-pointer"
                       onClick={(e) => {
                         if ((e.target as HTMLElement).closest("button,select")) return;
                         router.push(`/users/${user.id}`);
                       }}
                     >
                       <td className="px-5 py-3.5">
-                        <p className="text-[12px] md:text-[14px] font-medium text-[#0A0A0A]">{user.name}</p>
+                        <p className="text-[12px] md:text-[14px] font-medium text-[#222222]">{user.name}</p>
                         <p className="text-[12px] md:text-[14px] text-[#888]">{user.displayId}</p>
                       </td>
                       <td className="px-5 py-3.5">
@@ -425,6 +424,176 @@ function AllUsersTab() {
           { label: popupLabel,  onClick: executeAction,          variant: isDestructive ? "danger" : "primary" },
         ]}
       />
+    </>
+  );
+}
+
+function InactiveSkeletonRows({ count = 8 }: { count?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <tr key={i} className="border-b border-[#F5F5F5] animate-pulse">
+          <td className="px-5 py-4"><div className="h-4 bg-[#F2F2F2] rounded w-28 mb-1.5" /><div className="h-3 bg-[#F2F2F2] rounded w-16" /></td>
+          <td className="px-5 py-4"><div className="h-3 bg-[#F2F2F2] rounded w-12" /></td>
+          <td className="px-5 py-4"><div className="h-3 bg-[#F2F2F2] rounded w-28" /></td>
+          <td className="px-5 py-4"><div className="h-3 bg-[#F2F2F2] rounded w-16" /></td>
+          <td className="px-5 py-4"><div className="h-3 bg-[#F2F2F2] rounded w-20" /></td>
+          <td className="px-5 py-4"><div className="h-7 bg-[#F2F2F2] rounded-lg w-28 ml-auto" /></td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
+function InactiveUsersTab({ days }: { days: 45 | 7 }) {
+  const [users, setUsers] = useState<InactiveUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
+  const [acting, setActing] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    listInactiveUsers(days)
+      .then((res) => setUsers(res.users))
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  }, [days]);
+
+  async function handleMarkCalled(userId: string) {
+    setActing(userId);
+    try {
+      await markUserCalled(userId, noteInputs[userId] || undefined);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, calledAt: new Date().toISOString(), callNote: noteInputs[userId] ?? null }
+            : u
+        )
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setActing(null);
+    }
+  }
+
+  const isPhoneTab = days === 7;
+
+  return (
+    <>
+      <p className="text-sm text-[#888] mb-5">
+        {isPhoneTab
+          ? "Users inactive for 7+ days — phone numbers for WhatsApp outreach."
+          : "Users inactive for 45+ days — at risk of deletion on day 60."}
+      </p>
+
+      {error && (
+        <div className="mb-5 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-sm text-[#B31B38]">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl border border-[#EEEEEE] overflow-hidden">
+        <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+          <table className="w-full min-w-[700px]">
+            <thead>
+              <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
+                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">User</th>
+                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Gender</th>
+                {isPhoneTab && <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Phone</th>}
+                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Last active</th>
+                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Days</th>
+                {!isPhoneTab && <th className="text-right px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <InactiveSkeletonRows count={8} />
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={isPhoneTab ? 5 : 5} className="px-5 py-16 text-center text-sm text-[#888]">
+                    No inactive users found.
+                  </td>
+                </tr>
+              ) : (
+                users.map((u) => (
+                  <tr key={u.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
+                    <td className="px-5 py-3.5">
+                      <p className="text-[13px] font-medium text-[#0A0A0A]">{u.name}</p>
+                      <p className="text-[12px] text-[#888]">{u.displayId}</p>
+                    </td>
+                    <td className="px-5 py-3.5 text-[13px] text-[#555] capitalize">{u.gender}</td>
+                    {isPhoneTab && (
+                      <td className="px-5 py-3.5 text-[13px]">
+                        {u.phone
+                          ? <a
+                              href={`https://wa.me/${u.phone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#222222] font-medium hover:underline"
+                            >
+                              {u.phone}
+                            </a>
+                          : <span className="text-[#CCCCCC]">—</span>
+                        }
+                      </td>
+                    )}
+                    <td className="px-5 py-3.5 text-[13px] text-[#888]">
+                      {formatDate(u.lastActiveAt)}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        u.inactiveDays >= 55 ? "bg-[#FFF0F3] text-[#B31B38]" :
+                        u.inactiveDays >= 45 ? "bg-[#FFF8E1] text-[#E65100]" :
+                        "bg-[#F2F2F2] text-[#6B6B6B]"
+                      }`}>
+                        {u.inactiveDays}d
+                      </span>
+                    </td>
+                    {!isPhoneTab && (
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center justify-end gap-2">
+                          {u.calledAt ? (
+                            <div className="text-right">
+                              <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#F0FDF4] text-[#2E7D32]">
+                                Called
+                              </span>
+                              {u.callNote && (
+                                <p className="text-[11px] text-[#888] mt-0.5 max-w-[160px] text-right">{u.callNote}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={noteInputs[u.id] ?? ""}
+                                onChange={(e) => setNoteInputs((p) => ({ ...p, [u.id]: e.target.value }))}
+                                placeholder="Note (optional)"
+                                className="border border-[#E6E6E6] rounded-lg px-2.5 py-1.5 text-xs text-[#222]
+                                  placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] w-[130px] transition-colors"
+                              />
+                              <button
+                                type="button"
+                                disabled={acting === u.id}
+                                onClick={() => handleMarkCalled(u.id)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F5F5F5] text-[#555]
+                                  hover:bg-[#EEEEEE] transition-colors disabled:opacity-40 touch-manipulation"
+                              >
+                                {acting === u.id ? "…" : "Mark Called"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>
   );
 }
@@ -544,5 +713,31 @@ function ClosedAccountsTab() {
         <p className="text-center text-[12px] text-[#CCCCCC] mt-4">All accounts loaded</p>
       )}
     </>
+  );
+}
+
+// ── Page — defined last so all tab components are resolved before JSX references them ──
+
+export default function UsersPage() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as Tab | null) ?? "all";
+  const [tab, setTab] = useState<Tab>(initialTab);
+
+  return (
+    <div>
+      <div className="mb-6 ">
+        <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">User Management</h1>
+      </div>
+
+      <TabBar tabs={TABS} active={tab} onChange={(k) => setTab(k as Tab)} className="mb-6" />
+
+      {tab === "all"        && <AllUsersTab />}
+      {tab === "blocked"    && <AllUsersTab filter="blocked" />}
+      {tab === "elite"      && <AllUsersTab filter="elite" />}
+      {tab === "on_break"   && <AllUsersTab filter="on_break" />}
+      {tab === "closed"     && <ClosedAccountsTab />}
+      {tab === "inactive45" && <InactiveUsersTab days={45} />}
+      {tab === "inactive7"  && <InactiveUsersTab days={7} />}
+    </div>
   );
 }

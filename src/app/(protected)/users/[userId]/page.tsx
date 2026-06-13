@@ -115,7 +115,7 @@ function ElitePlanDropdown({ value, onChange, disabled }: {
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#EEEEEE] p-4 sm:p-5">
+    <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
       <h3 className="text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-2">{title}</h3>
       {children}
     </div>
@@ -263,7 +263,7 @@ export default function UserDetailPage() {
         <div className="h-8 w-48 bg-[#F2F2F2] rounded-xl" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-[#EEEEEE] p-6">
+            <div key={i} className="bg-white rounded-2xl border border-[#EAEAEA] p-6">
               <div className="h-4 w-24 bg-[#F2F2F2] rounded mb-4" />
               {Array.from({ length: 5 }).map((_, j) => (
                 <div key={j} className="h-3 bg-[#F2F2F2] rounded mb-3 w-full" />
@@ -306,7 +306,7 @@ export default function UserDetailPage() {
           </button>
           <h1 className="text-[18px] sm:text-[22px] font-semibold text-[#222] leading-tight">{user.name}</h1>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 bg-white border border-[#EEEEEE] rounded-2xl max-[370px]:px-2 px-4 sm:px-5 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 bg-white border border-[#EAEAEA] rounded-2xl max-[370px]:px-2 px-4 sm:px-5 py-3.5">
           <div className="flex flex-col gap-1">
             <span className="text-[14px] md:text-[16px] font-semibold uppercase tracking-wide text-[#888]">Inai ID</span>
             <span className="text-[14px] md:text-[16px] text-[#222]">{user.displayId}</span>
@@ -343,7 +343,9 @@ export default function UserDetailPage() {
         {/* Account Info */}
         <SectionCard title="Account">
           <InfoRow label="Email" value={user.email} />
-          <InfoRow label="Phone" value={user.phone ?? null} />
+          <InfoRow label="Phone" value={user.phone
+            ? <a href={`https://wa.me/${user.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">{user.phone}</a>
+            : null} />
           <InfoRow label="Gender" value={ucFirst(user.gender)} />
           <InfoRow label="Profile type" value={ucFirst(user.profileType)} />
           <InfoRow label="Email verified" value={user.isEmailVerified ? "Yes" : "No"} />
