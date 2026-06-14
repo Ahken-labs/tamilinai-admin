@@ -348,11 +348,23 @@ export type AdminUserDetail = {
     hobbies: string[] | null;
     photoVisibility: string;
     photoStatus: string;
+    hasPhoto: boolean;
   } | null;
 };
 
 export async function getAdminUser(userId: string): Promise<AdminUserDetail> {
   return apiFetch(`/users/${userId}`);
+}
+
+export async function getUserPhoto(userId: string): Promise<{ photoUrl: string }> {
+  return apiFetch(`/users/${userId}/photo`);
+}
+
+export async function editUserName(userId: string, name: string): Promise<{ message: string; name: string }> {
+  return apiFetch(`/users/${userId}/name`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
 }
 
 export async function setContactLimit(
@@ -392,6 +404,26 @@ export async function getAdminNotifications(
   page = 1,
 ): Promise<{ notifications: AdminNotification[]; page: number; hasMore: boolean; unreadCount: number }> {
   return apiFetch(`/notifications?page=${page}`);
+}
+
+export type NotificationHistoryEntry = {
+  batchId: string;
+  title: string | null;
+  message: string | null;
+  sentAt: string;
+  mode: 'broadcast' | 'specific';
+  recipientCount: number;
+  targetUser: { id: string | null; name: string | null; displayId: string | null } | null;
+};
+
+export async function getNotificationHistory(
+  page = 1,
+): Promise<{ history: NotificationHistoryEntry[] }> {
+  return apiFetch(`/notifications/history?page=${page}`);
+}
+
+export async function deleteNotificationBatch(batchId: string): Promise<{ message: string }> {
+  return apiFetch(`/notifications/history/${batchId}`, { method: "DELETE" });
 }
 
 export type AdminStats = {

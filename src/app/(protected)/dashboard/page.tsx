@@ -6,7 +6,7 @@ import { getAdminStats } from "../../../lib/api";
 import type { AdminStats } from "../../../lib/api";
 import {
   UsersIcon, EliteIcon, ActivityIcon, ClockIcon, AlertTriangleIcon,
-  TrendingUpIcon, UserXIcon, UserPauseIcon, ImageIcon, ArrowUpRightIcon, StarIcon,
+  TrendingUpIcon, UserXIcon, UserBlockedIcon, UserPauseIcon, ImageIcon, ArrowUpRightIcon, StarIcon,
 } from "@/assets/Icons";
 
 function StatCard({
@@ -120,7 +120,7 @@ export default function DashboardPage() {
         <StatCard label="Total Users"      value={stats?.totalUsers      ?? null} Icon={UsersIcon}     href="/users"              sub="All registered" />
         <StatCard label="Joined - 7 days"  value={stats?.usersLast7Days  ?? null} Icon={TrendingUpIcon} href="/users"             badge="+7d" />
         <StatCard label="Joined - 30 days" value={stats?.usersLast30Days ?? null} Icon={TrendingUpIcon} href="/users"             badge="+30d" />
-        <StatCard label="Blocked"          value={stats?.blockedUsers    ?? null} Icon={UserXIcon}     href="/users?tab=blocked" />
+        <StatCard label="Blocked"          value={stats?.blockedUsers    ?? null} Icon={UserBlockedIcon} href="/users?tab=blocked" />
         <StatCard label="On Break"         value={stats?.onBreakUsers    ?? null} Icon={UserPauseIcon} href="/users?tab=on_break" />
         <StatCard label="Closed Accounts"  value={stats?.closedUsers     ?? null} Icon={UserXIcon}     href="/users?tab=closed"   sub="Pending deletion" />
       </div>

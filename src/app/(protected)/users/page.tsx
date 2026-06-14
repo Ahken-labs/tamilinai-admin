@@ -7,69 +7,15 @@ import type { AdminListUser, ClosedUser, InactiveUser } from "../../../lib/api";
 import Popup from "@/components/Popup";
 import TabBar from "@/components/TabBar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { AlertTriangleIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon } from "@/assets/Icons";
+import { useToast } from "@/components/Toast";
+import Button from "@/components/Button";
 
 // ── Module-level cache (persists across tab switches, cleared on logout) ───────
 type CacheEntry = { users: AdminListUser[]; page: number; hasMore: boolean };
 const usersCache = new Map<string, CacheEntry>();
 export function clearUsersCache() { usersCache.clear(); }
 
-function ElitePlanDropdown({ value, onChange, disabled }: {
-  value: "basic" | "pro" | "max";
-  onChange: (v: "basic" | "pro" | "max") => void;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onMouseDown(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onMouseDown);
-    return () => document.removeEventListener("mousedown", onMouseDown);
-  }, [open]);
-
-  const options: { value: "basic" | "pro" | "max"; label: string }[] = [
-    { value: "basic", label: "Basic" },
-    { value: "pro",   label: "Pro" },
-    { value: "max",   label: "Max" },
-  ];
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium
-          transition-colors disabled:opacity-40 touch-manipulation
-          ${open ? "border-[#B31B38] bg-white text-[#0A0A0A]" : "border-[#E6E6E6] bg-white text-[#444] hover:border-[#CCCCCC]"}`}
-      >
-        {options.find((o) => o.value === value)?.label ?? "Basic"}
-        <svg viewBox="0 0 10 10" fill="none" className={`w-2.5 h-2.5 text-[#AAAAAA] transition-transform ${open ? "rotate-180" : ""}`}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute right-0 top-[calc(100%+3px)] z-50 min-w-[80px] rounded-[10px] border border-[#EBEBEB] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.10)]">
-          {options.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => { onChange(o.value); setOpen(false); }}
-              className={`flex w-full items-center px-3 py-2 text-xs text-left transition-colors
-                first:rounded-t-[10px] last:rounded-b-[10px]
-                ${value === o.value ? "bg-[#FFF0F3] text-[#B31B38] font-semibold" : "text-[#222] hover:bg-[#F5F5F5]"}`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-GB", {
@@ -79,16 +25,56 @@ function formatDate(dateStr: string): string {
 
 function ucFirst(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
+function PhoneCopyCell({ phone }: { phone: string }) {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(phone).then(() => {
+      toast({ type: "success", title: "Copied!", message: "Phone number copied to clipboard." });
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-2 group">
+      <a
+        href={`https://wa.me/${phone.replace(/\D/g, "")}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[#222222] font-medium hover:underline inline-block w-[120px] tabular-nums"
+      >
+        {phone}
+      </a>
+      <button
+        type="button"
+        onClick={handleCopy}
+        title="Copy phone number"
+        className="text-[#8C8C8C] hover:text-[#B31B38] transition-colors opacity-100 group-hover:opacity-100 cursor-pointer"
+      >
+        {copied ? (
+          <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4 text-[#2E7D32]">
+            <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <CopyDocumentIcon className="w-4 md:w-5 h-4 md:h-5 " />
+        )}
+      </button>
+    </div>
+  );
+}
+
 type Tab = "all" | "blocked" | "elite" | "on_break" | "closed" | "inactive45" | "inactive7";
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: "all",       label: "All Users" },
-  { key: "blocked",   label: "Blocked" },
-  { key: "elite",     label: "Elite" },
-  { key: "on_break",  label: "On Break" },
-  { key: "closed",    label: "Closed" },
+  { key: "all", label: "All Users" },
+  { key: "blocked", label: "Blocked" },
+  { key: "elite", label: "Elite" },
+  { key: "on_break", label: "On Break" },
+  { key: "closed", label: "Closed" },
   { key: "inactive45", label: "Inactive 45d+" },
-  { key: "inactive7",  label: "Inactive 7d" },
+  { key: "inactive7", label: "Inactive 7d" },
 ];
 
 // ── Skeleton rows ─────────────────────────────────────────────────────────────
@@ -130,27 +116,27 @@ function ClosedSkeletonRows({ count = 8 }: { count?: number }) {
 
 // ── Pending action union ──────────────────────────────────────────────────────
 type PendingUserAction =
-  | { type: "block";        userId: string; name: string }
-  | { type: "unblock";      userId: string; name: string }
-  | { type: "elite_grant";  userId: string; name: string; plan: "basic" | "pro" | "max" }
+  | { type: "block"; userId: string; name: string }
+  | { type: "unblock"; userId: string; name: string }
+  | { type: "elite_grant"; userId: string; name: string; plan: "basic" | "pro" | "max" }
   | { type: "elite_remove"; userId: string; name: string };
 
 function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) {
   const router = useRouter();
+  const { toast } = useToast();
   const cacheKey = filter ?? "all";
   const cached = usersCache.get(cacheKey);
 
-  const [users, setUsers]             = useState<AdminListUser[]>(cached?.users ?? []);
-  const [loading, setLoading]         = useState(!cached);
+  const [users, setUsers] = useState<AdminListUser[]>(cached?.users ?? []);
+  const [loading, setLoading] = useState(!cached);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const [appliedSearch, setApplied]   = useState("");
-  const [page, setPage]               = useState(cached?.page ?? 1);
-  const [hasMore, setHasMore]         = useState(cached?.hasMore ?? false);
-  const [acting, setActing]           = useState<string | null>(null);
-  const [elitePlan, setElitePlan]     = useState<Record<string, "basic" | "pro" | "max">>({});
-  const [error, setError]             = useState("");
-  const [pendingAction, setPending]   = useState<PendingUserAction | null>(null);
+  const [appliedSearch, setApplied] = useState("");
+  const [page, setPage] = useState(cached?.page ?? 1);
+  const [hasMore, setHasMore] = useState(cached?.hasMore ?? false);
+  const [acting, setActing] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [pendingAction, setPending] = useState<PendingUserAction | null>(null);
 
   const fetchUsers = useCallback(async (pg: number, q: string, append: boolean) => {
     if (append) setLoadingMore(true); else setLoading(true);
@@ -211,9 +197,11 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
       if (act.type === "block") {
         await blockUser(act.userId);
         setUsers((p) => p.map((u) => u.id === act.userId ? { ...u, isBlocked: true } : u));
+        toast({ type: "success", title: `${act.name} blocked` });
       } else if (act.type === "unblock") {
         await unblockUser(act.userId);
         setUsers((p) => p.map((u) => u.id === act.userId ? { ...u, isBlocked: false } : u));
+        toast({ type: "success", title: `${act.name} unblocked` });
       } else if (act.type === "elite_grant") {
         await toggleElite(act.userId, true, act.plan);
         setUsers((p) => p.map((u) => u.id === act.userId ? { ...u, isElite: true } : u));
@@ -230,24 +218,24 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
 
   const popupTitle =
     !pendingAction ? "" :
-    pendingAction.type === "block"        ? `Block ${pendingAction.name}?` :
-    pendingAction.type === "unblock"      ? `Unblock ${pendingAction.name}?` :
-    pendingAction.type === "elite_remove" ? "Remove Elite access?" :
-    `Grant Elite ${ucFirst(pendingAction.plan)}?`;
+      pendingAction.type === "block" ? `Block ${pendingAction.name}?` :
+        pendingAction.type === "unblock" ? `Unblock ${pendingAction.name}?` :
+          pendingAction.type === "elite_remove" ? "Remove Elite access?" :
+            `Grant Elite ${ucFirst(pendingAction.plan)}?`;
 
   const popupSubtitle =
     !pendingAction ? "" :
-    pendingAction.type === "block"        ? "This user won't be able to log in or use the platform." :
-    pendingAction.type === "unblock"      ? `${pendingAction.name} will regain full access to the platform.` :
-    pendingAction.type === "elite_remove" ? `${pendingAction.name} will lose Elite access and revert to the free plan.` :
-    `${pendingAction.name} will receive Elite ${ucFirst(pendingAction.plan)} access.`;
+      pendingAction.type === "block" ? "This user won't be able to log in or use the platform." :
+        pendingAction.type === "unblock" ? `${pendingAction.name} will regain full access to the platform.` :
+          pendingAction.type === "elite_remove" ? `${pendingAction.name} will lose Elite access and revert to the free plan.` :
+            `${pendingAction.name} will receive Elite ${ucFirst(pendingAction.plan)} access.`;
 
   const popupLabel =
     !pendingAction ? "Confirm" :
-    pendingAction.type === "block"        ? "Yes, block" :
-    pendingAction.type === "unblock"      ? "Yes, unblock" :
-    pendingAction.type === "elite_remove" ? "Yes, remove" :
-    "Yes, grant";
+      pendingAction.type === "block" ? "Yes, block" :
+        pendingAction.type === "unblock" ? "Yes, unblock" :
+          pendingAction.type === "elite_remove" ? "Yes, remove" :
+            "Yes, grant";
 
   const isDestructive =
     pendingAction?.type === "block" || pendingAction?.type === "elite_remove";
@@ -263,22 +251,9 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
           className="flex-1 border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-[14px] md:text-[16px] text-[#222]
             placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
         />
-        <button
-          type="submit"
-          className="px-4 sm:px-5 py-2.5 bg-[#B31B38] text-white text-[14px] md:text-[16px] font-semibold rounded-xl
-            hover:bg-[#9A1730] transition-colors shrink-0 touch-manipulation"
-        >
-          Search
-        </button>
+        <Button type="submit" text="Search" />
         {appliedSearch && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="px-3 sm:px-4 py-2.5 border border-[#E6E6E6] text-[#6B6B6B] text-sm rounded-xl
-              hover:bg-[#F2F2F2] transition-colors shrink-0 touch-manipulation"
-          >
-            Clear
-          </button>
+          <Button white text="Clear" onPress={handleClear} />
         )}
       </form>
 
@@ -330,13 +305,13 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <div className="flex flex-wrap gap-1">
-                          {user.isElite    && <span className="px-2 py-0.5 rounded-full bg-[#FFF8E1] text-[#E65100] text-[12px] md:text-[14px] font-semibold">Elite</span>}
-                          {user.isBlocked  && <span className="px-2 py-0.5 rounded-full bg-[#FFF0F3] text-[#B31B38] text-[12px] md:text-[14px] font-semibold">Blocked</span>}
-                          {user.isClosed   && <span className="px-2 py-0.5 rounded-full bg-[#F2F2F2] text-[#6B6B6B] text-[12px] md:text-[14px] font-semibold">Closed</span>}
-                          {user.trustBadge && <span className="px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[#2E7D32] text-[12px] md:text-[14px] font-semibold">Verified</span>}
+                        <div className="flex flex-wrap gap-1.5 items-center">
+                          {user.isElite && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF3DC] text-[#A97216] text-[13px] font-semibold"><EliteIcon className="w-4 md:w-4.5 h-4 md:h-4.5 shrink-0" />Elite</span>}
+                          {user.isBlocked && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF0F3] text-[#B31B38] text-[13px] font-semibold">Blocked</span>}
+                          {user.isClosed && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#B31B38] text-[#FFFFFF] text-[12px] sm:text-[13px] font-semibold"> <AlertTriangleIcon className="w-3.5 h-3.5"/> Closed</span>}
+                          {user.trustBadge && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFFFFF] text-[#8D5900] text-[13px] font-semibold"><VerifiedIcon className="w-4.5 md:w-5 h-4.5 md:h-5 shrink-0" />Verified</span>}
                           {!user.isElite && !user.isBlocked && !user.isClosed && !user.trustBadge &&
-                            <span className="text-[12px] md:text-[14px] text-[#CCCCCC]">—</span>}
+                            <span className="text-[14px] text-[#CCCCCC]">—</span>}
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
@@ -344,57 +319,18 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
+                          <Button
+                            pink
                             disabled={acting === user.id}
-                            onClick={() => setPending(
+                            text={acting === user.id ? "…" : user.isBlocked ? "Unblock" : "Block"}
+                            className={`!py-1.5 ${user.isBlocked ? "!bg-[#B31B38] !text-white hover:!bg-[#8E162D]" : "!bg-[#FFF0F3] !text-[#B31B38] hover:!bg-[#FFE0E7]"}`}
+                            onPress={() => setPending(
                               user.isBlocked
                                 ? { type: "unblock", userId: user.id, name: user.name }
-                                : { type: "block",   userId: user.id, name: user.name }
+                                : { type: "block", userId: user.id, name: user.name }
                             )}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors
-                              disabled:opacity-40 touch-manipulation ${
-                              user.isBlocked
-                                ? "bg-[#F0FDF4] text-[#2E7D32] hover:bg-[#DCFCE7]"
-                                : "bg-[#FFF0F3] text-[#B31B38] hover:bg-[#FFE0E7]"
-                            }`}
-                          >
-                            {acting === user.id ? "…" : user.isBlocked ? "Unblock" : "Block"}
-                          </button>
+                          />
 
-                          {user.isElite ? (
-                            <button
-                              type="button"
-                              disabled={acting === `${user.id}_elite`}
-                              onClick={() => setPending({ type: "elite_remove", userId: user.id, name: user.name })}
-                              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors
-                                disabled:opacity-40 bg-[#FFF8E1] text-[#E65100] hover:bg-[#FEF3C7] touch-manipulation"
-                            >
-                              {acting === `${user.id}_elite` ? "…" : "Remove Elite"}
-                            </button>
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              <ElitePlanDropdown
-                                value={elitePlan[user.id] ?? "basic"}
-                                onChange={(v) => setElitePlan((p) => ({ ...p, [user.id]: v }))}
-                                disabled={acting === `${user.id}_elite`}
-                              />
-                              <button
-                                type="button"
-                                disabled={acting === `${user.id}_elite`}
-                                onClick={() => setPending({
-                                  type:   "elite_grant",
-                                  userId: user.id,
-                                  name:   user.name,
-                                  plan:   elitePlan[user.id] ?? "basic",
-                                })}
-                                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors
-                                  disabled:opacity-40 bg-[#F5F5F5] text-[#555] hover:bg-[#EEEEEE] touch-manipulation"
-                              >
-                                {acting === `${user.id}_elite` ? "…" : "Grant"}
-                              </button>
-                            </div>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -420,8 +356,8 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
         title={popupTitle}
         subtitle={popupSubtitle}
         buttons={[
-          { label: "Cancel",    onClick: () => setPending(null), variant: "secondary" },
-          { label: popupLabel,  onClick: executeAction,          variant: isDestructive ? "danger" : "primary" },
+          { label: "Cancel", onClick: () => setPending(null), variant: "secondary" },
+          { label: popupLabel, onClick: executeAction, variant: isDestructive ? "danger" : "primary" },
         ]}
       />
     </>
@@ -445,12 +381,71 @@ function InactiveSkeletonRows({ count = 8 }: { count?: number }) {
   );
 }
 
+type GenderFilter = "all" | "male" | "female";
+
+function GenderFilterDropdown({ value, onChange }: { value: GenderFilter; onChange: (v: GenderFilter) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onMouseDown(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [open]);
+
+  const options: { value: GenderFilter; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+  ];
+
+  return (
+    <div ref={ref} className="relative inline-flex">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1 md:text-[16px] text-[14px] font-semibold uppercase tracking-wide transition-colors
+          ${value !== "all" ? "text-[#888]" : "text-[#888] hover:text-[#555]"}`}
+      >
+        Gender
+        {value !== "all" && (
+          <span className="normal-case tracking-normal font-normal md:text-[16px] text-[14px] ">({value})</span>
+        )}
+        <svg viewBox="0 0 10 10" fill="none" className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}>
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 top-[calc(100%+6px)] z-50 min-w-[100px] rounded-[10px] border border-[#EBEBEB] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.10)]">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              className={`flex w-full items-center px-3 py-2 md:text-[16px] text-[14px] text-left transition-colors
+                first:rounded-t-[10px] last:rounded-b-[10px]
+                ${value === o.value ? "bg-[#FFF0F3] text-[#B31B38] font-medium" : "text-[#222] hover:bg-[#F5F5F5] font-medium"}`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function InactiveUsersTab({ days }: { days: 45 | 7 }) {
+  const router = useRouter();
   const [users, setUsers] = useState<InactiveUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
   const [acting, setActing] = useState<string | null>(null);
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>("all");
 
   useEffect(() => {
     setLoading(true);
@@ -479,10 +474,11 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
   }
 
   const isPhoneTab = days === 7;
+  const visibleUsers = genderFilter === "all" ? users : users.filter((u) => u.gender.toLowerCase() === genderFilter);
 
   return (
     <>
-      <p className="text-sm text-[#888] mb-5">
+      <p className="text-[14px] text-[#888] mb-4">
         {isPhoneTab
           ? "Users inactive for 7+ days — phone numbers for WhatsApp outreach."
           : "Users inactive for 45+ days — at risk of deletion on day 60."}
@@ -499,27 +495,29 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
           <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
-                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">User</th>
-                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Gender</th>
-                {isPhoneTab && <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Phone</th>}
-                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Last active</th>
-                <th className="text-left px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Days</th>
-                {!isPhoneTab && <th className="text-right px-5 py-3 text-[13px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>}
+                <th className="text-left px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">User</th>
+                <th className="text-left px-5 py-3">
+                  <GenderFilterDropdown value={genderFilter} onChange={setGenderFilter} />
+                </th>
+                {isPhoneTab && <th className="text-left px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">Phone</th>}
+                <th className="text-left px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">Last active</th>
+                <th className="text-left px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">Days</th>
+                {!isPhoneTab && <th className="text-right px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <InactiveSkeletonRows count={8} />
-              ) : users.length === 0 ? (
+              ) : visibleUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={isPhoneTab ? 5 : 5} className="px-5 py-16 text-center text-sm text-[#888]">
-                    No inactive users found.
+                  <td colSpan={5} className="px-5 py-16 text-center text-sm text-[#888]">
+                    {users.length === 0 ? "No inactive users found." : `No ${genderFilter} users found.`}
                   </td>
                 </tr>
               ) : (
-                users.map((u) => (
-                  <tr key={u.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
-                    <td className="px-5 py-3.5">
+                visibleUsers.map((u) => (
+                  <tr key={u.id} className="border-b border-[#F5F5F5] hover:bg-[#F5F5F5] transition-colors">
+                    <td className="px-5 py-3.5 cursor-pointer" onClick={() => router.push(`/users/${u.id}`)}>
                       <p className="text-[13px] font-medium text-[#0A0A0A]">{u.name}</p>
                       <p className="text-[12px] text-[#888]">{u.displayId}</p>
                     </td>
@@ -527,14 +525,7 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
                     {isPhoneTab && (
                       <td className="px-5 py-3.5 text-[13px]">
                         {u.phone
-                          ? <a
-                              href={`https://wa.me/${u.phone.replace(/\D/g, "")}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[#222222] font-medium hover:underline"
-                            >
-                              {u.phone}
-                            </a>
+                          ? <PhoneCopyCell phone={u.phone} />
                           : <span className="text-[#CCCCCC]">—</span>
                         }
                       </td>
@@ -543,11 +534,10 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
                       {formatDate(u.lastActiveAt)}
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        u.inactiveDays >= 55 ? "bg-[#FFF0F3] text-[#B31B38]" :
-                        u.inactiveDays >= 45 ? "bg-[#FFF8E1] text-[#E65100]" :
-                        "bg-[#F2F2F2] text-[#6B6B6B]"
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${u.inactiveDays >= 55 ? "bg-[#FFF0F3] text-[#B31B38]" :
+                          u.inactiveDays >= 45 ? "bg-[#FFF8E1] text-[#E65100]" :
+                            "bg-[#F2F2F2] text-[#6B6B6B]"
+                        }`}>
                         {u.inactiveDays}d
                       </span>
                     </td>
@@ -599,12 +589,12 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
 }
 
 function ClosedAccountsTab() {
-  const [users, setUsers]             = useState<ClosedUser[]>([]);
-  const [loading, setLoading]         = useState(true);
+  const [users, setUsers] = useState<ClosedUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage]               = useState(1);
-  const [hasMore, setHasMore]         = useState(false);
-  const [error, setError]             = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [error, setError] = useState("");
 
   const fetchClosed = useCallback(async (pg: number, append: boolean) => {
     if (append) setLoadingMore(true); else setLoading(true);
@@ -633,13 +623,13 @@ function ClosedAccountsTab() {
 
   function daysColor(days: number) {
     if (days > 15) return "bg-[#F0FDF4] text-[#2E7D32]";
-    if (days > 5)  return "bg-[#FFF8E1] text-[#E65100]";
+    if (days > 5) return "bg-[#FFF8E1] text-[#E65100]";
     return "bg-[#FFF0F3] text-[#B31B38]";
   }
 
   return (
     <>
-      <p className="text-sm text-[#888] mb-5">
+      <p className="text-[14px] text-[#888] mb-4">
         Accounts pending deletion. Data is permanently erased after the 30-day grace period.
       </p>
 
@@ -673,7 +663,7 @@ function ClosedAccountsTab() {
               ) : (
                 <>
                   {users.map((user) => (
-                    <tr key={user.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
+                    <tr key={user.id} className="border-b border-[#F5F5F5] hover:bg-[#F5F5F5] transition-colors">
                       <td className="px-5 py-3.5">
                         <p className="text-[12px] md:text-[14px] font-medium text-[#0A0A0A]">{user.name}</p>
                         <p className="text-[12px] md:text-[14px] text-[#888]">{user.displayId}</p>
@@ -710,7 +700,7 @@ function ClosedAccountsTab() {
       <div ref={sentinelRef} className="h-1" />
 
       {!hasMore && users.length > 0 && (
-        <p className="text-center text-[12px] text-[#CCCCCC] mt-4">All accounts loaded</p>
+        <p className="text-center text-[14px] md:text-[16px] text-[#CCCCCC] mt-4">All accounts loaded 🎉</p>
       )}
     </>
   );
@@ -731,13 +721,13 @@ export default function UsersPage() {
 
       <TabBar tabs={TABS} active={tab} onChange={(k) => setTab(k as Tab)} className="mb-6" />
 
-      {tab === "all"        && <AllUsersTab />}
-      {tab === "blocked"    && <AllUsersTab filter="blocked" />}
-      {tab === "elite"      && <AllUsersTab filter="elite" />}
-      {tab === "on_break"   && <AllUsersTab filter="on_break" />}
-      {tab === "closed"     && <ClosedAccountsTab />}
+      {tab === "all" && <AllUsersTab />}
+      {tab === "blocked" && <AllUsersTab filter="blocked" />}
+      {tab === "elite" && <AllUsersTab filter="elite" />}
+      {tab === "on_break" && <AllUsersTab filter="on_break" />}
+      {tab === "closed" && <ClosedAccountsTab />}
       {tab === "inactive45" && <InactiveUsersTab days={45} />}
-      {tab === "inactive7"  && <InactiveUsersTab days={7} />}
+      {tab === "inactive7" && <InactiveUsersTab days={7} />}
     </div>
   );
 }

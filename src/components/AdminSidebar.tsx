@@ -12,7 +12,7 @@ import {
   SignOutIcon,
   MenuIcon,
   DashboardIcon,
-  SeedIcon, // remove this once website gets real profile traffic
+  SeedIcon, 
 } from "@/assets/Icons";
 import Popup from "./Popup";
 import { clearUsersCache } from "@/app/(protected)/users/page";
