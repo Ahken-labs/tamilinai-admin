@@ -9,6 +9,7 @@ import Popup from "@/components/Popup";
 import TabBar from "@/components/TabBar";
 import SubTabBar from "@/components/SubTabBar";
 import { useToast } from "@/components/Toast";
+import { PasteIcon } from "@/assets/Icons";
 
 function formatDateTime(d: string): string {
   return new Date(d).toLocaleString("en-GB", {
@@ -180,14 +181,27 @@ export default function NotificationsPage() {
             {mode === "specific" && (
               <div className="flex flex-col gap-1 md:gap-2">
                 <label className="text-[14px] md:text-[16px] font-medium text-[#555]">User ID</label>
-                <input
-                  type="text"
-                  value={targetUserId}
-                  onChange={(e) => setTargetId(e.target.value)}
-                  placeholder="Paste the user's UUID"
-                  className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-sm text-[#222]
-                    placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={targetUserId}
+                    onChange={(e) => setTargetId(e.target.value)}
+                    placeholder="Paste the user's UUID"
+                    className="w-full border border-[#E6E6E6] rounded-xl px-4 py-2.5 pr-10 text-sm text-[#222]
+                      placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
+                  />
+                  <button
+                    type="button"
+                    title="Paste from clipboard"
+                    onClick={async () => {
+                      const text = await navigator.clipboard.readText();
+                      setTargetId(text.trim());
+                    }}
+                    className="absolute right-3 text-[#AAAAAA] hover:text-[#B31B38] transition-colors"
+                  >
+                    <PasteIcon className="w-4 h-4 text-[#222] hover:text-[#B31B38] cursor-pointer" />
+                  </button>
+                </div>
               </div>
             )}
 
