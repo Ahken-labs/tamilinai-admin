@@ -7,7 +7,8 @@ import type { AdminListUser, ClosedUser, InactiveUser } from "../../../lib/api";
 import Popup from "@/components/Popup";
 import TabBar from "@/components/TabBar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { AlertTriangleIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon } from "@/assets/Icons";
+import { AlertTriangleIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon, DownloadExcelIcon } from "@/assets/Icons";
+import { exportToExcel } from "@/lib/exportExcel";
 import { useToast } from "@/components/Toast";
 import Button from "@/components/Button";
 
@@ -438,9 +439,11 @@ function GenderFilterDropdown({ value, onChange }: { value: GenderFilter; onChan
   );
 }
 
-function InactiveUsersTab({ days }: { days: 45 | 7 }) {
+function InactiveUsersTab({ days, onReady }: { days: 45 | 7; onReady?: (fn: () => void) => void }) {
   const router = useRouter();
   const [users, setUsers] = useState<InactiveUser[]>([]);
+  const usersRef = useRef<InactiveUser[]>([]);
+  const genderFilterRef = useRef<GenderFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
@@ -450,9 +453,14 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
   useEffect(() => {
     setLoading(true);
     listInactiveUsers(days)
-      .then((res) => setUsers(res.users))
+      .then((res) => {
+        usersRef.current = res.users;
+        setUsers(res.users);
+        if (res.users.length > 0) onReady?.(handleExport);
+      })
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days]);
 
   async function handleMarkCalled(userId: string) {
@@ -476,6 +484,25 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
   const isPhoneTab = days === 7;
   const visibleUsers = genderFilter === "all" ? users : users.filter((u) => u.gender.toLowerCase() === genderFilter);
 
+  function handleExport() {
+    const g = genderFilterRef.current;
+    const all = usersRef.current;
+    const data = g === "all" ? all : all.filter((u) => u.gender.toLowerCase() === g);
+    const rows = data.map((u) => ({
+      "Inai ID":       u.displayId,
+      "Name":          u.name,
+      "Gender":        u.gender,
+      "Country Code":  u.countryCode,
+      "Phone":         u.phone ?? "",
+      "Last Active":   u.lastActiveAt ? new Date(u.lastActiveAt).toLocaleDateString("en-GB") : "Never",
+      "Days Inactive": u.inactiveDays,
+      "Warning Sent":  u.inactivityWarningSentAt ? new Date(u.inactivityWarningSentAt).toLocaleDateString("en-GB") : "No",
+      "Called":        u.calledAt ? new Date(u.calledAt).toLocaleDateString("en-GB") : "No",
+      "Call Note":     u.callNote ?? "",
+    }));
+    exportToExcel(rows, `inai-inactive-${days}d-${new Date().toISOString().slice(0, 10)}`);
+  }
+
   return (
     <>
       <p className="text-[14px] text-[#888] mb-4">
@@ -497,7 +524,7 @@ function InactiveUsersTab({ days }: { days: 45 | 7 }) {
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
                 <th className="text-left px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">User</th>
                 <th className="text-left px-5 py-3">
-                  <GenderFilterDropdown value={genderFilter} onChange={setGenderFilter} />
+                  <GenderFilterDropdown value={genderFilter} onChange={(v) => { genderFilterRef.current = v; setGenderFilter(v); }} />
                 </th>
                 {isPhoneTab && <th className="text-left px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">Phone</th>}
                 <th className="text-left px-5 py-3 md:text-[16px] text-[14px]  font-semibold text-[#888] uppercase tracking-wide">Last active</th>
@@ -712,22 +739,28 @@ export default function UsersPage() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as Tab | null) ?? "all";
   const [tab, setTab] = useState<Tab>(initialTab);
+  const [exportFn, setExportFn] = useState<(() => void) | null>(null);
+
+  const isInactiveTab = tab === "inactive45" || tab === "inactive7";
 
   return (
     <div>
-      <div className="mb-6 ">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">User Management</h1>
+        {isInactiveTab && exportFn && (
+          <Button white className="!py-2" text="Export Excel" iconLeft={<DownloadExcelIcon className="w-5 h-5" />} onPress={exportFn} />
+        )}
       </div>
 
-      <TabBar tabs={TABS} active={tab} onChange={(k) => setTab(k as Tab)} className="mb-6" />
+      <TabBar tabs={TABS} active={tab} onChange={(k) => { setTab(k as Tab); setExportFn(null); }} className="mb-6" />
 
       {tab === "all" && <AllUsersTab />}
       {tab === "blocked" && <AllUsersTab filter="blocked" />}
       {tab === "elite" && <AllUsersTab filter="elite" />}
       {tab === "on_break" && <AllUsersTab filter="on_break" />}
       {tab === "closed" && <ClosedAccountsTab />}
-      {tab === "inactive45" && <InactiveUsersTab days={45} />}
-      {tab === "inactive7" && <InactiveUsersTab days={7} />}
+      {tab === "inactive45" && <InactiveUsersTab days={45} onReady={(fn) => setExportFn(() => fn)} />}
+      {tab === "inactive7" && <InactiveUsersTab days={7} onReady={(fn) => setExportFn(() => fn)} />}
     </div>
   );
 }

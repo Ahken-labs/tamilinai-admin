@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   listAdminSubscriptions, listAdminRefundRequests, reviewAdminRefundRequest,
   listAdminPromoCodes, createAdminPromoCode, updateAdminPromoCode, deleteAdminPromoCode,
@@ -11,6 +11,9 @@ import TabBar from "@/components/TabBar";
 import SubTabBar from "@/components/SubTabBar";
 import { useToast } from "@/components/Toast";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { exportToExcel } from "@/lib/exportExcel";
+import { DownloadExcelIcon } from "@/assets/Icons";
+import Button from "@/components/Button";
 
 type Tab = "subscriptions" | "refunds" | "promo";
 
@@ -42,8 +45,9 @@ function SubSkeletonRows({ count = 8 }: { count?: number }) {
   );
 }
 
-function SubscriptionsTab() {
+function SubscriptionsTab({ onReady }: { onReady?: (fn: () => void) => void }) {
   const [subs, setSubs]           = useState<AdminSubscription[]>([]);
+  const subsRef = useRef<AdminSubscription[]>([]);
   const [loading, setLoading]     = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage]           = useState(1);
@@ -55,13 +59,19 @@ function SubscriptionsTab() {
     setError("");
     try {
       const res = await listAdminSubscriptions(pg);
-      setSubs((prev) => append ? [...prev, ...res.subscriptions] : res.subscriptions);
+      setSubs((prev) => {
+        const next = append ? [...prev, ...res.subscriptions] : res.subscriptions;
+        subsRef.current = next;
+        return next;
+      });
       setHasMore(res.hasMore);
+      if (!append && res.subscriptions.length > 0) onReady?.(handleExport);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
       if (append) setLoadingMore(false); else setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchSubs(1, false); }, [fetchSubs]);
@@ -80,6 +90,21 @@ function SubscriptionsTab() {
     if (status === "failed" || status === "refund_requested") return "bg-[#FFF0F3] text-[#B31B38]";
     if (status === "refund_approved")  return "bg-[#FFF8E1] text-[#E65100]";
     return "bg-[#F2F2F2] text-[#6B6B6B]";
+  }
+
+  function handleExport() {
+    const rows = subsRef.current.map((s: AdminSubscription) => ({
+      "Inai ID":    s.displayId,
+      "Name":       s.userName,
+      "Plan":       `Elite ${PLAN_LABELS[s.planKey] ?? s.planKey} · ${s.months}mo`,
+      "Amount":     s.amountCents === 0 ? "Free (Admin)" : formatAmount(s.amountCents, s.currency),
+      "Currency":   s.currency.toUpperCase(),
+      "Status":     s.status.replace(/_/g, " "),
+      "Auto Renew": s.autoRenew ? "Yes" : "No",
+      "Period End": formatDate(s.periodEnd),
+      "Date":       formatDate(s.createdAt),
+    }));
+    exportToExcel(rows, `inai-subscriptions-${new Date().toISOString().slice(0, 10)}`);
   }
 
   return (
@@ -159,10 +184,12 @@ type PendingRefund = {
   action: "approve" | "reject";
 };
 
-function RefundsTab() {
+function RefundsTab({ onReady }: { onReady?: (fn: () => void) => void }) {
   const [requests, setRequests]     = useState<AdminRefundRequest[]>([]);
+  const requestsRef = useRef<AdminRefundRequest[]>([]);
   const [loading, setLoading]       = useState(true);
   const [filter, setFilter]         = useState("pending");
+  const filterRef = useRef("pending");
   const [acting, setActing]         = useState<string | null>(null);
   const [noteMap, setNoteMap]       = useState<Record<string, string>>({});
   const [error, setError]           = useState("");
@@ -173,6 +200,7 @@ function RefundsTab() {
     setError("");
     try {
       const res = await listAdminRefundRequests(status || undefined);
+      requestsRef.current = res.refundRequests;
       setRequests(res.refundRequests);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
@@ -181,7 +209,28 @@ function RefundsTab() {
     }
   }, []);
 
-  useEffect(() => { fetchRequests(filter); }, [fetchRequests, filter]);
+  useEffect(() => { filterRef.current = filter; fetchRequests(filter); }, [fetchRequests, filter]);
+
+  useEffect(() => {
+    if (!loading && requests.length > 0) onReady?.(handleExportRefunds);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, requests]);
+
+  function handleExportRefunds() {
+    const rows = requestsRef.current.map((r: AdminRefundRequest) => ({
+      "Inai ID":    r.displayId,
+      "Name":       r.userName,
+      "Plan":       `${PLAN_LABELS[r.planKey] ?? r.planKey}`,
+      "Amount":     formatAmount(r.amountCents, r.currency),
+      "Currency":   r.currency.toUpperCase(),
+      "Reason":     r.reason.replace(/_/g, " "),
+      "Note":       r.otherText ?? "",
+      "Status":     r.status,
+      "Admin Note": r.adminNote ?? "",
+      "Requested":  formatDate(r.createdAt),
+    }));
+    exportToExcel(rows, `inai-refunds-${filterRef.current}-${new Date().toISOString().slice(0, 10)}`);
+  }
 
   async function executeRefund() {
     if (!pendingRefund) return;
@@ -603,6 +652,7 @@ function PromoCodesTab() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function BillingPage() {
   const [tab, setTab] = useState<Tab>("subscriptions");
+  const [exportFn, setExportFn] = useState<(() => void) | null>(null);
 
   const BILLING_TABS = [
     { key: "subscriptions", label: "Subscriptions", shortLabel: "Subs" },
@@ -612,14 +662,17 @@ export default function BillingPage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">Billing</h1>
+        {exportFn && (
+          <Button white className="!py-2" text="Export Excel" iconLeft={<DownloadExcelIcon className="w-5 h-5" />} onPress={exportFn} />
+        )}
       </div>
 
-      <TabBar tabs={BILLING_TABS} active={tab} onChange={(k) => setTab(k as Tab)} className="mb-6" />
+      <TabBar tabs={BILLING_TABS} active={tab} onChange={(k) => { setTab(k as Tab); setExportFn(null); }} className="mb-6" />
 
-      {tab === "subscriptions" && <SubscriptionsTab />}
-      {tab === "refunds"       && <RefundsTab />}
+      {tab === "subscriptions" && <SubscriptionsTab onReady={(fn) => setExportFn(() => fn)} />}
+      {tab === "refunds"       && <RefundsTab onReady={(fn) => setExportFn(() => fn)} />}
       {tab === "promo"         && <PromoCodesTab />}
     </div>
   );
