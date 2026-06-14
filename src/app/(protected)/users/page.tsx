@@ -460,7 +460,6 @@ function InactiveUsersTab({ days, onReady }: { days: 45 | 7; onReady?: (fn: () =
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days]);
 
   async function handleMarkCalled(userId: string) {

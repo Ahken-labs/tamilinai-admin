@@ -71,7 +71,6 @@ function SubscriptionsTab({ onReady }: { onReady?: (fn: () => void) => void }) {
     } finally {
       if (append) setLoadingMore(false); else setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchSubs(1, false); }, [fetchSubs]);
@@ -213,7 +212,6 @@ function RefundsTab({ onReady }: { onReady?: (fn: () => void) => void }) {
 
   useEffect(() => {
     if (!loading && requests.length > 0) onReady?.(handleExportRefunds);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, requests]);
 
   function handleExportRefunds() {
