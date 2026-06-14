@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAdminUser, setContactLimit, blockUser, unblockUser, toggleElite, clearAboutMe } from "@/lib/api";
 import type { AdminUserDetail } from "@/lib/api";
-import { BackArrowIcon, EliteIcon, VerifiedIcon } from "@/assets/Icons";
+import { BackArrowIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon } from "@/assets/Icons";
 import Popup from "@/components/Popup";
 import { useToast } from "@/components/Toast";
 import Button from "@/components/Button";
@@ -46,10 +46,7 @@ function CopyIdButton({ userId }: { userId: string }) {
           <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ) : (
-        <svg viewBox="0 0 16 16" fill="none" className="cursor-pointer w-4 h-4 shrink-0 opacity-50 group-hover:opacity-100">
-          <rect x="5" y="5" width="8" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M5 4.5V3.5A1.5 1.5 0 0 1 6.5 2h6A1.5 1.5 0 0 1 14 3.5v7A1.5 1.5 0 0 1 12.5 12H11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
+        <CopyDocumentIcon className="cursor-pointer w-5 sm:w-6 h-5 sm:h-6 shrink-0 opacity-100 text-[#222] group-hover:text-[#B31B38]" />
       )}
     </button>
   );
