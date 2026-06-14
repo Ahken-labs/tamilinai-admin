@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getAdminUser, setContactLimit, blockUser, unblockUser, toggleElite, clearAboutMe } from "@/lib/api";
+import { getAdminUser, getUserPhoto, setContactLimit, blockUser, unblockUser, toggleElite, clearAboutMe, editUserName } from "@/lib/api";
 import type { AdminUserDetail } from "@/lib/api";
-import { BackArrowIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon } from "@/assets/Icons";
+import { BackArrowIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon, ThreeDotsIcon } from "@/assets/Icons";
 import Popup from "@/components/Popup";
 import { useToast } from "@/components/Toast";
 import Button from "@/components/Button";
@@ -110,9 +110,9 @@ function ElitePlanDropdown({ value, onChange, disabled }: {
   );
 }
 
-function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+function SectionCard({ title, children, id, className }: { title: string; children: ReactNode; id?: string; className?: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
+    <div id={id} className={`bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5 ${className ?? ""}`}>
       <h3 className="text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-2">{title}</h3>
       {children}
     </div>
@@ -172,6 +172,20 @@ export default function UserDetailPage() {
   const [pendingAction, setPending] = useState<PopupAction | null>(null);
   const [elitePlan, setElitePlan] = useState<"basic" | "pro" | "max">("basic");
 
+  // 3-dots menu
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showElite, setShowElite] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [loadingPhoto, setLoadingPhoto] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  // Edit name
+  const [editNameOpen, setEditNameOpen] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [savingName, setSavingName] = useState(false);
+
+
   useEffect(() => {
     setLoading(true);
     getAdminUser(userId)
@@ -182,6 +196,24 @@ export default function UserDetailPage() {
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load user"))
       .finally(() => setLoading(false));
   }, [userId]);
+
+  async function handleSaveName() {
+    const letters = nameInput.replace(/[^a-zA-Z]/g, "");
+    const sanitized = letters.length > 0 ? letters[0].toUpperCase() + letters.slice(1).toLowerCase() : "";
+    if (!sanitized) { setNameError("Name cannot be empty."); return; }
+    setSavingName(true);
+    setNameError("");
+    try {
+      const res = await editUserName(user!.id, sanitized);
+      setUser((u) => u ? { ...u, name: res.name } : u);
+      setEditNameOpen(false);
+      toast({ type: "success", title: "Name updated", message: `Name changed to ${res.name}.` });
+    } catch (e) {
+      setNameError(e instanceof Error ? e.message : "Failed to update name.");
+    } finally {
+      setSavingName(false);
+    }
+  }
 
   async function executeAction() {
     if (!pendingAction || !user) return;
@@ -291,17 +323,57 @@ export default function UserDetailPage() {
     <>
       {/* Header */}
       <div className="mb-4">
-        <div className="flex items-center gap-4 mb-5">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl border border-[#E6E6E6]
-              text-[#555] hover:border-[#B31B38] hover:bg-[#FFF] hover:text-[#B31B38] transition-colors shrink-0"
-            aria-label="Go back"
-          >
-            <BackArrowIcon className="w-4.5 h-4.5" />
-          </button>
-          <h1 className="text-[18px] sm:text-[22px] font-semibold text-[#222] leading-tight">{user.name}</h1>
+        <div className="flex items-center justify-between gap-4 mb-5">
+          <div className="flex items-center gap-4 min-w-0">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl border border-[#E6E6E6]
+                text-[#555] hover:border-[#B31B38] hover:bg-[#FFF] hover:text-[#B31B38] transition-colors shrink-0"
+              aria-label="Go back"
+            >
+              <BackArrowIcon className="w-4.5 h-4.5" />
+            </button>
+            <h1 className="text-[18px] sm:text-[22px] font-semibold text-[#222] leading-tight truncate">{user.name}</h1>
+          </div>
+          {/* 3-dots menu */}
+          <div className="relative shrink-0">
+            {showElite ? (
+              <Button sub secondary text="Done" onPress={() => setShowElite(false)} />
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((p) => !p)}
+                  className="cursor-pointer text-[#222222] hover:text-[#B31B38] transition-colors"
+                >
+                  <ThreeDotsIcon className="w-6 sm:w-8 h-6 sm:h-8" />
+                </button>
+                {menuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute right-0 top-9 z-20 w-40 bg-white border border-[#EEEEEE] rounded-xl shadow-lg py-1 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => { setMenuOpen(false); setNameInput(user.name); setNameError(""); setEditNameOpen(true); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#222] hover:bg-[#F5F5F5] transition-colors"
+                      >
+                        Edit name
+                      </button>
+                      <div className="mx-3 border-t border-[#F0F0F0]" />
+                      <button
+                        type="button"
+                        onClick={() => { setMenuOpen(false); setShowElite(true); document.getElementById("status-actions-section")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#222] hover:bg-[#F5F5F5] transition-colors"
+                      >
+                        Elite
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 bg-white border border-[#EAEAEA] rounded-2xl max-[370px]:px-2 px-4 sm:px-5 py-3.5">
           <div className="flex flex-col gap-1">
@@ -352,7 +424,7 @@ export default function UserDetailPage() {
         </SectionCard>
 
         {/* Status & Actions */}
-        <SectionCard title="Status & Actions">
+        <SectionCard title="Status & Actions" id="status-actions-section">
           <InfoRow label="Elite" value={user.isElite ? `Yes — expires ${formatDate(user.eliteExpiresAt)}` : "No"} />
           <InfoRow label="Blocked" value={user.isBlocked ? "Yes" : "No"} />
           <InfoRow label="On break" value={user.isOnBreak ? `Yes — until ${formatDate(user.breakEndsAt)}` : "No"} />
@@ -365,18 +437,15 @@ export default function UserDetailPage() {
               onPress={() => setPending(user.isBlocked ? { type: "unblock" } : { type: "block" })}
               disabled={acting}
             />
-            {user.isElite ? (
-              <Button onPress={() => setPending({ type: "elite_remove" })} disabled={acting} className="!py-1.5" white text="Remove Elite" />
-
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <ElitePlanDropdown
-                  value={elitePlan}
-                  onChange={(v) => setElitePlan(v)}
-                  disabled={acting}
-                />
-              <Button onPress={() => setPending({ type: "elite_grant", plan: elitePlan })} disabled={acting} className="!py-1.5" white text="Grant Elite" />
-              </div>
+            {showElite && (
+              user.isElite ? (
+                <Button onPress={() => setPending({ type: "elite_remove" })} disabled={acting} className="!py-1.5" white text="Remove Elite" />
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <ElitePlanDropdown value={elitePlan} onChange={(v) => setElitePlan(v)} disabled={acting} />
+                  <Button onPress={() => setPending({ type: "elite_grant", plan: elitePlan })} disabled={acting} className="!py-1.5" white text="Grant Elite" />
+                </div>
+              )
             )}
           </div>
         </SectionCard>
@@ -431,22 +500,58 @@ export default function UserDetailPage() {
           </SectionCard>
         )}
 
-        {/* About Me */}
-        {p?.aboutMe && (
-          <div className="lg:col-span-2">
-            <SectionCard title="About Me">
-              <p className="text-[14px] md:text-[16px] text-[#222] leading-[1.7] whitespace-pre-wrap mb-4">{p.aboutMe}</p>
-              <div className="justify-end flex">
-                <Button
-                  disabled={acting}
-                  onPress={() => setPending({ type: "clear_about" })}
-                  secondary sub text="Clear About Me" />
+        {/* About Me + Profile Photo — same row */}
+        {(p?.aboutMe || p?.hasPhoto) && (
+          <div className="lg:col-span-2 flex flex-col sm:flex-row gap-5">
+            {p?.aboutMe && (
+              <div className="flex-[2] flex flex-col">
+                <SectionCard title="About Me" className="h-full">
+                  <p className="text-[14px] md:text-[16px] text-[#222] leading-[1.7] whitespace-pre-wrap mb-4">{p.aboutMe}</p>
+                  <div className="justify-end flex">
+                    <Button disabled={acting} onPress={() => setPending({ type: "clear_about" })} secondary sub text="Clear About Me" />
+                  </div>
+                </SectionCard>
               </div>
-            </SectionCard>
+            )}
+            {p?.hasPhoto && (
+              <div className="flex-1 flex flex-col">
+                <SectionCard title="Profile Photo" className="h-full">
+                  {photoUrl ? (
+                    <div
+                      className="w-full aspect-square rounded-xl overflow-hidden cursor-zoom-in"
+                      onClick={() => setLightboxUrl(photoUrl)}
+                    >
+                      <img
+                        src={photoUrl}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                        draggable={false}
+                        onContextMenu={(e) => e.preventDefault()}
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={loadingPhoto}
+                      onClick={async () => {
+                        setLoadingPhoto(true);
+                        try {
+                          const res = await getUserPhoto(user.id);
+                          setPhotoUrl(res.photoUrl);
+                        } catch { /* ignore */ }
+                        finally { setLoadingPhoto(false); }
+                      }}
+                      className="px-4 py-2 text-[14px] font-medium border border-[#E6E6E6] rounded-xl text-[#444] hover:border-[#B31B38] hover:text-[#B31B38] transition-colors disabled:opacity-50"
+                    >
+                      {loadingPhoto ? "Loading…" : "Load photo"}
+                    </button>
+                  )}
+                </SectionCard>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Contact Limit Override — Elite only */}
         {user.isElite && (<div className="lg:col-span-2">
           <SectionCard title="Contact View Limit Override">
             <p className="text-[14px] md:text-[16px] text-[#222] mb-4">
@@ -481,6 +586,55 @@ export default function UserDetailPage() {
         </div>)}
 
       </div>
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm px-4"
+          onClick={() => setLightboxUrl(null)}
+          style={{ animation: "fadeIn 0.2s ease" }}
+        >
+          <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes zoomIn{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}`}</style>
+          <img
+            src={lightboxUrl}
+            alt="Full size"
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[90vw] w-auto h-auto object-contain shadow-2xl"
+            style={{ animation: "zoomIn 0.25s cubic-bezier(0.34,1.56,0.64,1)" }}
+          />
+          <button
+            className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white text-lg transition-colors"
+            onClick={() => setLightboxUrl(null)}
+          >✕</button>
+        </div>
+      )}
+
+      {/* Edit name popup */}
+      {editNameOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-[16px] font-semibold text-[#0A0A0A] mb-1">Edit name</h2>
+            <p className="text-[13px] text-[#888] mb-4">Only use letters only. Check carefully before save.</p>
+            <input
+              type="text"
+              value={nameInput}
+              onChange={(e) => { setNameInput(e.target.value); setNameError(""); }}
+              placeholder="Enter name"
+              className="w-full border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-[14px] text-[#222] outline-none focus:border-[#B31B38] transition-colors mb-1"
+              onKeyDown={(e) => { if (e.key === "Enter") handleSaveName(); }}
+              autoFocus
+            />
+            {nameError && <p className="text-[12px] text-[#B31B38] mb-3">*{nameError}</p>}
+            {!nameError && <div className="mb-3" />}
+            <div className="flex gap-3">
+              <Button text="Cancel" onPress={() => setEditNameOpen(false)} className="flex-1 !bg-white !text-[#222] border border-[#E6E6E6] hover:!bg-[#F8F8F8]" />
+              <Button text={savingName ? "Saving…" : "Save"} disabled={savingName} onPress={handleSaveName} className="flex-1" />
+            </div>
+          </div>
+        </div>
+      )}
 
       <Popup
         open={!!pendingAction}

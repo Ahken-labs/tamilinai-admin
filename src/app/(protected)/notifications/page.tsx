@@ -2,19 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAdminNotifications, sendAdminNotification } from "@/lib/api";
-import type { AdminNotification } from "@/lib/api";
+import { getAdminNotifications, sendAdminNotification, getNotificationHistory, deleteNotificationBatch } from "@/lib/api";
+import type { AdminNotification, NotificationHistoryEntry } from "@/lib/api";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import Popup from "@/components/Popup";
 import TabBar from "@/components/TabBar";
 import SubTabBar from "@/components/SubTabBar";
 import { useToast } from "@/components/Toast";
-import { PasteIcon } from "@/assets/Icons";
+import { PasteIcon, ThreeDotsIcon, DeleteIcon } from "@/assets/Icons";
+import Button from "@/components/Button";
 
 function formatDateTime(d: string): string {
-  return new Date(d).toLocaleString("en-GB", {
+  return new Date(d).toLocaleString("en-US", {
     day: "numeric", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: true,
   });
 }
 
@@ -50,7 +51,17 @@ function SkeletonRows({ count = 8 }: { count?: number }) {
 
 type Mode = "specific" | "broadcast";
 
-type PageTab = "send" | "events";
+type PageTab = "send" | "events" | "history";
+
+
+
+function RefreshIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 4V9H4.582M19.938 11C19.469 7.054 16.116 4 12 4C8.707 4 5.853 5.966 4.582 9M4.582 9H9M20 20V15H19.418M19.418 15C18.147 18.034 15.293 20 12 20C7.884 20 4.531 16.946 4.062 13M19.418 15H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -89,6 +100,52 @@ export default function NotificationsPage() {
   }, [loading, loadingMore, hasMore, page, fetchNotifs]);
 
   const sentinelRef = useInfiniteScroll(handleLoadMore, hasMore && !loading && !loadingMore);
+
+  // ── Send History ───────────────────────────────────────────────────────────
+  const [history, setHistory]           = useState<NotificationHistoryEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+  const [deletingBatch, setDeletingBatch] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<NotificationHistoryEntry | null>(null);
+  const [historyMenuOpen, setHistoryMenuOpen] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
+  const historyFetched = useRef(false);
+
+  const fetchHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    setHistoryError("");
+    try {
+      const res = await getNotificationHistory(1);
+      setHistory(res.history);
+    } catch (err) {
+      setHistoryError(err instanceof Error ? err.message : "Failed to load history");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "history" && !historyFetched.current) {
+      historyFetched.current = true;
+      fetchHistory();
+    }
+  }, [tab, fetchHistory]);
+
+  async function handleDeleteBatch() {
+    if (!deleteConfirm) return;
+    const { batchId } = deleteConfirm;
+    setDeleteConfirm(null);
+    setDeletingBatch(batchId);
+    try {
+      await deleteNotificationBatch(batchId);
+      setHistory((prev) => prev.filter((h) => h.batchId !== batchId));
+      toast({ type: "success", title: "Notification deleted", message: "Removed from all recipients." });
+    } catch (err) {
+      toast({ type: "error", title: "Delete failed", message: err instanceof Error ? err.message : "Failed to delete" });
+    } finally {
+      setDeletingBatch(null);
+    }
+  }
 
   // ── Compose ────────────────────────────────────────────────────────────────
   const [mode, setMode]               = useState<Mode>("specific");
@@ -148,15 +205,57 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-start justify-between">
         <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">Notifications</h1>
+        {tab === "history" && (
+          <div className="relative">
+            {deleteMode ? (
+              <Button sub secondary text="Done" onPress={() => setDeleteMode(false)}/>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setHistoryMenuOpen((p) => !p)}
+                  className="cursor-pointer text-[#222222] hover:text-[#B31B38] transition-colors"
+                >
+                  <ThreeDotsIcon className="w-6 sm:w-8 h-6 sm:h-8"/>
+                </button>
+                {historyMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setHistoryMenuOpen(false)} />
+                    <div className="absolute right-0 top-9 z-20 w-36 bg-white border border-[#EEEEEE] rounded-xl shadow-lg py-1 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => { setHistoryMenuOpen(false); fetchHistory(); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#222] hover:bg-[#F5F5F5] transition-colors"
+                      >
+                        <RefreshIcon />
+                        Refresh
+                      </button>
+                      <div className="mx-3 border-t border-[#F0F0F0]" />
+                      <button
+                        type="button"
+                        onClick={() => { setHistoryMenuOpen(false); setDeleteMode(true); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#B31B38] hover:bg-[#FFF0F3] transition-colors"
+                      >
+                        <DeleteIcon />
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tab toggle */}
       <TabBar
         tabs={[
-          { key: "send", label: "Send Notification" },
-          { key: "events", label: "System Events" },
+          { key: "send",    label: "Send Notification" },
+          { key: "history", label: "Send History" },
+          { key: "events",  label: "System Events" },
         ]}
         active={tab}
         onChange={(k) => setTab(k as PageTab)}
@@ -255,6 +354,59 @@ export default function NotificationsPage() {
         </div>
       )}
 
+      {/* ── Send History tab ───────────────────────────────────────────────── */}
+      {tab === "history" && (
+        <div>
+
+          {historyError && (
+            <div className="mb-4 px-4 py-3 bg-[#FFF0F3] border border-[#FFD5DF] rounded-xl text-[14px] text-[#B31B38]">{historyError}</div>
+          )}
+
+          <div className="bg-white rounded-2xl border border-[#EEEEEE] overflow-hidden">
+            {historyLoading ? (
+              <SkeletonRows count={6} />
+            ) : history.length === 0 ? (
+              <div className="px-5 py-16 text-center text-[14px] text-[#888]">No notifications sent yet.</div>
+            ) : (
+              history.map((h) => (
+                <div key={h.batchId} className="flex items-start justify-between gap-4 px-5 py-4 border-b border-[#F5F5F5] last:border-0">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    {/* Row 1: badge + recipient */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[12px] font-semibold shrink-0 ${h.mode === "broadcast" ? "bg-[#FFF0F3] text-[#B31B38]" : "bg-[#EFF6FF] text-[#1D4ED8]"}`}>
+                        {h.mode === "broadcast" ? `Broadcast · ${h.recipientCount} users` : "Specific"}
+                      </span>
+                      {h.targetUser && (
+                        <span className="text-[14px] md:text-[16px] font-semibold text-[#222]">
+                          {h.targetUser.name}
+                          {h.targetUser.displayId && <span className="text-[#888] font-normal ml-3">({h.targetUser.displayId})</span>}
+                        </span>
+                      )}
+                    </div>
+                    {/* Row 2: title */}
+                    <p className="mt-2 text-[14px] md:text-[16px] font-semibold text-[#222]">Title: {h.title}</p>
+                    {/* Row 3: message (full, no truncation) */}
+                    {h.message && <p className="mt-1.5 text-[14px] md:text-[16px] text-[#555] leading-[1.5]">Message: {h.message}</p>}
+                    {/* Row 4: date */}
+                    <p className="mt-2 text-[14px] md:text-[16px] text-[#888]">{formatDateTime(h.sentAt)}</p>
+                  </div>
+                  {deleteMode && (
+                    <button
+                      type="button"
+                      disabled={deletingBatch === h.batchId}
+                      onClick={() => setDeleteConfirm(h)}
+                      className="cursor-pointer shrink-0 p-2 rounded-xl text-[#B31B38] hover:text-[#B31B38] hover:bg-[#FFF0F3] transition-colors disabled:opacity-40"
+                    >
+                      <DeleteIcon className="w-4.5 sm:w-5 h-4.5 sm:h-5"/>
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── System Events tab ──────────────────────────────────────────────── */}
       {tab === "events" && (
         <div>
@@ -323,6 +475,17 @@ export default function NotificationsPage() {
         buttons={[
           { label: "Cancel", onClick: () => setConfirmOpen(false), variant: "secondary" },
           { label: "Send",   onClick: handleSend,                  variant: mode === "broadcast" ? "danger" : "primary" },
+        ]}
+      />
+
+      <Popup
+        open={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        title="Delete this notification?"
+        subtitle={`"${deleteConfirm?.title}" will be removed from ${deleteConfirm?.mode === "broadcast" ? `all ${deleteConfirm.recipientCount} recipients` : "the recipient"}'s notification feed.`}
+        buttons={[
+          { label: "Cancel", onClick: () => setDeleteConfirm(null), variant: "secondary" },
+          { label: "Yes, delete", onClick: handleDeleteBatch, variant: "danger" },
         ]}
       />
     </div>
