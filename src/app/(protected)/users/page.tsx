@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { listUsers, blockUser, unblockUser, toggleElite, listClosedAccounts, listInactiveUsers, markUserCalled } from "../../../lib/api";
 import type { AdminListUser, ClosedUser, InactiveUser } from "../../../lib/api";
 import Popup from "@/components/Popup";
 import TabBar from "@/components/TabBar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { AlertTriangleIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon, DownloadExcelIcon } from "@/assets/Icons";
+import { AlertTriangleIcon, CopyDocumentIcon, EliteCrownIcon, EliteProIcon, EliteVIPIcon, VerifiedIcon, DownloadExcelIcon } from "@/assets/Icons";
 import { exportToExcel } from "@/lib/exportExcel";
 import { useToast } from "@/components/Toast";
 import Button from "@/components/Button";
@@ -205,10 +205,10 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
         toast({ type: "success", title: `${act.name} unblocked` });
       } else if (act.type === "elite_grant") {
         await toggleElite(act.userId, true, act.plan);
-        setUsers((p) => p.map((u) => u.id === act.userId ? { ...u, isElite: true } : u));
+        setUsers((p) => p.map((u) => u.id === act.userId ? { ...u, isElite: true, elitePlanKey: act.plan } : u));
       } else if (act.type === "elite_remove") {
         await toggleElite(act.userId, false);
-        setUsers((p) => p.map((u) => u.id === act.userId ? { ...u, isElite: false } : u));
+        setUsers((p) => p.map((u) => u.id === act.userId ? { ...u, isElite: false, elitePlanKey: null } : u));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
@@ -307,7 +307,15 @@ function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) 
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex flex-wrap gap-1.5 items-center">
-                          {user.isElite && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF3DC] text-[#A97216] text-[13px] font-semibold"><EliteIcon className="w-4 md:w-4.5 h-4 md:h-4.5 shrink-0" />Elite</span>}
+                          {user.isElite && (() => {
+                            const ELITE_UI: Record<string, { label: string; bg: string; color: string; Icon: React.ComponentType<{ className?: string; fill?: string }> }> = {
+                              basic: { label: "Elite basic", bg: "#FFDED3", color: "#725E4C", Icon: EliteCrownIcon },
+                              pro:   { label: "Elite pro",   bg: "#FFDED3", color: "#B31B38", Icon: EliteProIcon },
+                              max:   { label: "Elite VIP",   bg: "#222222", color: "#FFDED3", Icon: EliteVIPIcon },
+                            };
+                            const ui = ELITE_UI[user.elitePlanKey ?? ""] ?? ELITE_UI.basic;
+                            return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[13px] font-semibold" style={{ background: ui.bg, color: ui.color }}><ui.Icon className="w-4 md:w-4.5 h-4 md:h-4.5 shrink-0" fill={ui.color} />{ui.label}</span>;
+                          })()}
                           {user.isBlocked && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF0F3] text-[#B31B38] text-[13px] font-semibold">Blocked</span>}
                           {user.isClosed && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#B31B38] text-[#FFFFFF] text-[12px] sm:text-[13px] font-semibold"> <AlertTriangleIcon className="w-3.5 h-3.5"/> Closed</span>}
                           {user.trustBadge && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFFFFF] text-[#8D5900] text-[13px] font-semibold"><VerifiedIcon className="w-4.5 md:w-5 h-4.5 md:h-5 shrink-0" />Verified</span>}
