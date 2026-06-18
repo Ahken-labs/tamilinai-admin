@@ -23,7 +23,7 @@ function formatDate(iso: string | null | undefined) {
 }
 
 function formatAmount(cents: number, currency: string) {
-  const symbol = currency.toLowerCase() === "lkr" ? "Rs" : "$";
+  const symbol = currency.toLowerCase() === "lkr" ? "Rs" : "£";
   const amount = cents / 100;
   return `${symbol} ${currency === "lkr" ? Math.round(amount).toLocaleString() : amount.toFixed(2)}`;
 }
@@ -396,7 +396,7 @@ function PromoCodesTab() {
   const [acting, setActing]         = useState<string | null>(null);
   const [error, setError]           = useState("");
   const [showForm, setShowForm]     = useState(false);
-  const [form, setForm]             = useState({ code: "", discountLkr: "", discountUsd: "", maxUses: "", expiresAt: "" });
+  const [form, setForm]             = useState({ code: "", discountLkr: "", discountGbp: "", maxUses: "", expiresAt: "" });
   const [formError, setFormError]   = useState("");
   const [creating, setCreating]     = useState(false);
   const [pendingDelete, setPending] = useState<PendingDelete | null>(null);
@@ -454,8 +454,8 @@ function PromoCodesTab() {
     const code = form.code.trim().toUpperCase();
     if (!code) { setFormError("Code is required."); return; }
     const discountLkr = parseInt(form.discountLkr || "0", 10);
-    const discountUsdCents = Math.round(parseFloat(form.discountUsd || "0") * 100);
-    if (!discountLkr && !discountUsdCents) { setFormError("Enter at least one discount amount."); return; }
+    const discountGbpCents = Math.round(parseFloat(form.discountGbp || "0") * 100);
+    if (!discountLkr && !discountGbpCents) { setFormError("Enter at least one discount amount."); return; }
 
     setCreating(true);
     setFormError("");
@@ -463,12 +463,12 @@ function PromoCodesTab() {
       const res = await createAdminPromoCode({
         code,
         discountLkr,
-        discountUsdCents,
+        discountGbpCents,
         maxUses:   form.maxUses ? parseInt(form.maxUses, 10) : undefined,
         expiresAt: form.expiresAt || undefined,
       });
       setCodes((prev) => [res.promoCode, ...prev]);
-      setForm({ code: "", discountLkr: "", discountUsd: "", maxUses: "", expiresAt: "" });
+      setForm({ code: "", discountLkr: "", discountGbp: "", maxUses: "", expiresAt: "" });
       setShowForm(false);
       toast({ type: "success", title: "Promo code created", message: `${res.promoCode.code} is now active.` });
     } catch (err) {
@@ -514,9 +514,9 @@ function PromoCodesTab() {
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
             <div>
-              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Discount USD ($)</label>
-              <input type="number" step="0.01" placeholder="e.g. 2.00" value={form.discountUsd}
-                onChange={(e) => setForm((f) => ({ ...f, discountUsd: e.target.value }))}
+              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Discount GBP (£)</label>
+              <input type="number" step="0.01" placeholder="e.g. 2.00" value={form.discountGbp}
+                onChange={(e) => setForm((f) => ({ ...f, discountGbp: e.target.value }))}
                 className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
@@ -560,7 +560,7 @@ function PromoCodesTab() {
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Code</th>
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Discount LKR</th>
-                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Discount USD</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Discount GBP</th>
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Uses</th>
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Expires</th>
                 <th className="text-right px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Actions</th>
@@ -593,7 +593,7 @@ function PromoCodesTab() {
                     Rs {c.discountLkr.toLocaleString()}
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-[#444]">
-                    ${(c.discountUsdCents / 100).toFixed(2)}
+                    £{(c.discountGbpCents / 100).toFixed(2)}
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-[#444]">
                     {c.usedCount}{c.maxUses ? ` / ${c.maxUses}` : ""}

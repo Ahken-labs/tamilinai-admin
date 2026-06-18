@@ -23,6 +23,7 @@ export type AdminListUser = {
   name: string;
   gender: string;
   isElite: boolean;
+  elitePlanKey?: string | null;
   isBlocked: boolean;
   isClosed: boolean;
   isOnBreak: boolean;
@@ -190,7 +191,7 @@ export type AdminPromoCode = {
   id: string;
   code: string;
   discountLkr: number;
-  discountUsdCents: number;
+  discountGbpCents: number;
   isActive: boolean;
   expiresAt: string | null;
   maxUses: number | null;
@@ -205,7 +206,7 @@ export async function listAdminPromoCodes(): Promise<{ promoCodes: AdminPromoCod
 export async function createAdminPromoCode(data: {
   code: string;
   discountLkr: number;
-  discountUsdCents: number;
+  discountGbpCents: number;
   maxUses?: number;
   expiresAt?: string;
 }): Promise<{ promoCode: AdminPromoCode }> {
@@ -306,6 +307,7 @@ export type AdminUserDetail = {
   isPhoneVerified: boolean;
   isProfileComplete: boolean;
   isElite: boolean;
+  elitePlanKey?: string | null;
   eliteExpiresAt: string | null;
   isBlocked: boolean;
   isOnBreak: boolean;

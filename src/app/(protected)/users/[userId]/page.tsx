@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAdminUser, getUserPhoto, setContactLimit, blockUser, unblockUser, toggleElite, clearAboutMe, editUserName } from "@/lib/api";
 import type { AdminUserDetail } from "@/lib/api";
-import { BackArrowIcon, CopyDocumentIcon, EliteIcon, VerifiedIcon, ThreeDotsIcon } from "@/assets/Icons";
+import { BackArrowIcon, CopyDocumentIcon, EliteCrownIcon, EliteProIcon, EliteVIPIcon, VerifiedIcon, ThreeDotsIcon } from "@/assets/Icons";
 import Popup from "@/components/Popup";
 import { useToast } from "@/components/Toast";
 import Button from "@/components/Button";
@@ -49,6 +49,23 @@ function CopyIdButton({ userId }: { userId: string }) {
         <CopyDocumentIcon className="cursor-pointer w-5 sm:w-6 h-5 sm:h-6 shrink-0 opacity-100 text-[#222] group-hover:text-[#B31B38]" />
       )}
     </button>
+  );
+}
+
+type EliteUI = { label: string; bg: string; color: string; iconFill: string; Icon: React.ComponentType<{ className?: string; fill?: string }> };
+const ELITE_PLAN_BADGE: Record<string, EliteUI> = {
+  basic: { label: "Elite basic", bg: "#FFDED3", color: "#725E4C", iconFill: "#725E4C", Icon: EliteCrownIcon },
+  pro:   { label: "Elite pro",   bg: "#FFDED3", color: "#B31B38", iconFill: "#B31B38", Icon: EliteProIcon },
+  max:   { label: "Elite VIP",   bg: "#222222", color: "#FFDED3", iconFill: "#FFDED3", Icon: EliteVIPIcon },
+};
+function EliteBadge({ planKey }: { planKey?: string | null }) {
+  const ui = ELITE_PLAN_BADGE[planKey ?? ""] ?? ELITE_PLAN_BADGE.basic;
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[14px] font-semibold"
+      style={{ background: ui.bg, color: ui.color }}>
+      <ui.Icon className="w-5 h-5 shrink-0" fill={ui.iconFill} />
+      {ui.label}
+    </span>
   );
 }
 
@@ -139,8 +156,7 @@ function Badge({ label, color }: { label: string; color: "green" | "red" | "oran
   }[color];
 
   const icon =
-    label === "Elite" ? <EliteIcon className="w-5 h-5 shrink-0" /> :
-      label === "Verified" ? <VerifiedIcon className="w-5 h-5 shrink-0" /> :
+    label === "Verified" ? <VerifiedIcon className="w-5 h-5 shrink-0" /> :
         label === "Complete" ? <svg viewBox="0 0 12 12" fill="none" className="w-3.5 h-3.5 shrink-0"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> :
           null;
 
@@ -232,11 +248,11 @@ export default function UserDetailPage() {
         toast({ type: "success", title: `${user.name} unblocked` });
       } else if (act.type === "elite_grant") {
         await toggleElite(user.id, true, act.plan);
-        setUser((u) => u ? { ...u, isElite: true } : u);
+        setUser((u) => u ? { ...u, isElite: true, elitePlanKey: act.plan } : u);
         toast({ type: "success", title: "Elite granted", message: `${user.name} now has Elite ${ucFirst(act.plan)}.` });
       } else if (act.type === "elite_remove") {
         await toggleElite(user.id, false);
-        setUser((u) => u ? { ...u, isElite: false } : u);
+        setUser((u) => u ? { ...u, isElite: false, elitePlanKey: null } : u);
         toast({ type: "success", title: "Elite removed", message: `${user.name} reverted to free plan.` });
       } else if (act.type === "clear_about") {
         await clearAboutMe(user.id);
@@ -389,7 +405,7 @@ export default function UserDetailPage() {
             <>
               <div className="w-px h-8 bg-[#EEEEEE] hidden sm:block" />
               <div className="flex flex-wrap gap-1.5 items-center">
-                {user.isElite && <Badge label="Elite" color="orange" />}
+                {user.isElite && <EliteBadge planKey={user.elitePlanKey} />}
                 {user.isBlocked && <Badge label="Blocked" color="red" />}
                 {user.isClosed && <Badge label="Closed" color="gray" />}
                 {user.isOnBreak && <Badge label="On Break" color="blue" />}
@@ -425,7 +441,7 @@ export default function UserDetailPage() {
 
         {/* Status & Actions */}
         <SectionCard title="Status & Actions" id="status-actions-section">
-          <InfoRow label="Elite" value={user.isElite ? `Yes — expires ${formatDate(user.eliteExpiresAt)}` : "No"} />
+          <InfoRow label="Elite" value={user.isElite ? `Yes (${user.elitePlanKey ?? "basic"}) — expires ${formatDate(user.eliteExpiresAt)}` : "No"} />
           <InfoRow label="Blocked" value={user.isBlocked ? "Yes" : "No"} />
           <InfoRow label="On break" value={user.isOnBreak ? `Yes — until ${formatDate(user.breakEndsAt)}` : "No"} />
           <InfoRow label="Closed" value={user.isClosed ? `Yes — ${formatDate(user.closedAt)}` : "No"} />
@@ -555,7 +571,7 @@ export default function UserDetailPage() {
         {user.isElite && (<div className="lg:col-span-2">
           <SectionCard title="Contact View Limit Override">
             <p className="text-[14px] md:text-[16px] text-[#222] mb-4">
-              Only Elite users can view contacts. Plan limits: Basic — 30 per 2 months, Pro — 60 per 3 months, Max — 90 per 6 months.
+              Only Elite users can view contacts. Plan limits: Basic — 20 per 3 months, Pro — 50 per 6 months, Max — 120 per 10 months.
               Set an override to replace the plan limit for this user (Elite only).
               Current override:{" "}
               <strong>{user.contactViewLimitOverride != null ? user.contactViewLimitOverride : "None (plan default)"}</strong>
