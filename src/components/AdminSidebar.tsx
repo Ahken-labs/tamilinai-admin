@@ -14,7 +14,7 @@ import {
   DashboardIcon,
   SeedIcon, 
 } from "@/assets/Icons";
-import Popup from "./Popup";
+import Popup from "./layout/Popup";
 import { clearUsersCache } from "@/app/(protected)/users/page";
 import { clearPhotosCache } from "@/app/(protected)/photos/page";
 
@@ -23,6 +23,7 @@ const NAV = [
   { label: "Users", href: "/users", Icon: UsersIcon },
   { label: "Photos", href: "/photos", Icon: PhotoIcon },
   { label: "Billing", href: "/billing", Icon: BillingIcon },
+  { label: "Bank Transfers", href: "/bank-transfers", Icon: BillingIcon },
   { label: "Notifications", href: "/notifications", Icon: BellIcon },
   // remove this once website gets real profile traffic
   { label: "Seeded", href: "/seeded", Icon: SeedIcon },

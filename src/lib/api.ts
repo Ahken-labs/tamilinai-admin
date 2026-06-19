@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://tamilinai-api.onrender.com";
+const BASE = process.env.NEXT_PUBLIC_API_URL;
 
 
 export type AdminUser = {
@@ -477,4 +477,86 @@ export async function markUserCalled(
     method: "PATCH",
     body: JSON.stringify({ callNote }),
   });
+}
+
+export type AdminBankTransferOrder = {
+  id: string;
+  planKey: string;
+  months: number;
+  amountCents: number;
+  currency: string;
+  promoCode: string | null;
+  discountCents: number;
+  receiptUrl: string | null;
+  receiptPresignedUrl: string | null;
+  status: "pending" | "approved" | "rejected";
+  adminNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  userName: string | null;
+  userDisplayId: string | null;
+  userGender: string | null;
+  userEmail: string | null;
+  userPhone: string | null;
+  userCountryCode: string;
+};
+
+export async function getBankTransfer(orderId: string): Promise<AdminBankTransferOrder> {
+  return apiFetch(`/billing/bank-transfers/${orderId}`);
+}
+
+export async function listBankTransfers(
+  status = "pending",
+  page = 1,
+): Promise<{ orders: AdminBankTransferOrder[]; page: number; hasMore: boolean }> {
+  return apiFetch(`/billing/bank-transfers?status=${status}&page=${page}`);
+}
+
+export async function reviewBankTransfer(
+  orderId: string,
+  payload: {
+    action: "approve" | "reject";
+    newPlanKey?: string;
+    adminNote?: string;
+    adminPassword?: string;
+  },
+): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`/billing/bank-transfers/${orderId}/review`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function downloadBankReceiptBlob(orderId: string): Promise<{ blob: Blob; filename: string }> {
+  const token = getToken();
+  const res = await fetch(`${BASE}/api/admin/billing/bank-transfers/${orderId}/download-receipt`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error("Failed to download receipt");
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const shortId = orderId.slice(0, 8).toUpperCase();
+  const date = new Date().toISOString().slice(0, 10);
+  const filename = match?.[1] ?? `${shortId}-receipt-${date}`;
+  const blob = await res.blob();
+  return { blob, filename };
+}
+
+export async function adminUploadBankReceipt(
+  orderId: string,
+  file: File,
+): Promise<{ success: boolean; receiptPresignedUrl: string }> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
+  const formData = new FormData();
+  formData.append("receipt", file);
+  const res = await fetch(`${BASE}/api/admin/billing/bank-transfers/${orderId}/upload-receipt`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error ?? "Upload failed");
+  }
+  return res.json();
 }

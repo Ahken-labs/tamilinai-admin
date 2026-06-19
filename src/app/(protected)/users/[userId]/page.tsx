@@ -5,9 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { getAdminUser, getUserPhoto, setContactLimit, blockUser, unblockUser, toggleElite, clearAboutMe, editUserName } from "@/lib/api";
 import type { AdminUserDetail } from "@/lib/api";
 import { BackArrowIcon, CopyDocumentIcon, EliteCrownIcon, EliteProIcon, EliteVIPIcon, VerifiedIcon, ThreeDotsIcon } from "@/assets/Icons";
-import Popup from "@/components/Popup";
-import { useToast } from "@/components/Toast";
-import Button from "@/components/Button";
+import Popup from "@/components/layout/Popup";
+import { useToast } from "@/components/ui/Toast";
+import Button from "@/components/layout/Button";
 
 function formatDate(d: string | null | undefined): string {
   if (!d) return "—";

@@ -1,4 +1,4 @@
-import { SectionLabel } from "@/components/ui";
+import { SectionLabel } from "@/components/ui/ui";
 import { ShieldCheckIcon, LockClosedIcon, UsersGroupIcon } from "@/assets/Icons";
 
 const FEATURES = [

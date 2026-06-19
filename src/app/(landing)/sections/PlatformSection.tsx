@@ -1,4 +1,4 @@
-import { SectionLabel } from "@/components/ui";
+import { SectionLabel } from "@/components/ui/ui";
 import { InaiMarkIcon, ForwardArrowIcon } from "@/assets/Icons";
 import { SITE } from "@/data/contacts";
 

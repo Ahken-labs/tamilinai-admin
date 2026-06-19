@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AdminSidebar from "../../components/AdminSidebar";
-import { ToastProvider } from "../../components/Toast";
+import { ToastProvider } from "../../components/ui/Toast";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);

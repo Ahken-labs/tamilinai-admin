@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { getAdminNotifications, sendAdminNotification, getNotificationHistory, deleteNotificationBatch } from "@/lib/api";
 import type { AdminNotification, NotificationHistoryEntry } from "@/lib/api";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import Popup from "@/components/Popup";
-import TabBar from "@/components/TabBar";
-import SubTabBar from "@/components/SubTabBar";
-import { useToast } from "@/components/Toast";
+import Popup from "@/components/layout/Popup";
+import TabBar from "@/components/layout/TabBar";
+import SubTabBar from "@/components/layout/SubTabBar";
+import { useToast } from "@/components/ui/Toast";
 import { PasteIcon, ThreeDotsIcon, DeleteIcon } from "@/assets/Icons";
-import Button from "@/components/Button";
+import Button from "@/components/layout/Button";
 
 function formatDateTime(d: string): string {
   return new Date(d).toLocaleString("en-US", {

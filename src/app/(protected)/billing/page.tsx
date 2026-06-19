@@ -6,14 +6,14 @@ import {
   listAdminPromoCodes, createAdminPromoCode, updateAdminPromoCode, deleteAdminPromoCode,
 } from "../../../lib/api";
 import type { AdminSubscription, AdminRefundRequest, AdminPromoCode } from "../../../lib/api";
-import Popup from "@/components/Popup";
-import TabBar from "@/components/TabBar";
-import SubTabBar from "@/components/SubTabBar";
-import { useToast } from "@/components/Toast";
+import Popup from "@/components/layout/Popup";
+import TabBar from "@/components/layout/TabBar";
+import SubTabBar from "@/components/layout/SubTabBar";
+import { useToast } from "@/components/ui/Toast";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { exportToExcel } from "@/lib/exportExcel";
 import { DownloadExcelIcon } from "@/assets/Icons";
-import Button from "@/components/Button";
+import Button from "@/components/layout/Button";
 
 type Tab = "subscriptions" | "refunds" | "promo";
 

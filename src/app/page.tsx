@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import Header        from "@/components/Header";
-import Footer        from "@/components/Footer";
-import LoginPanel    from "@/components/LoginPanel";
-import { HR }        from "@/components/ui";
+import Footer        from "@/components/ui/Footer";
+import LoginPanel    from "@/components/auth/LoginPanel";
+import { HR }        from "@/components/ui/ui";
 
 import HeroSection     from "@/app/(landing)/sections/HeroSection";
 import StatsSection    from "@/app/(landing)/sections/StatsSection";
