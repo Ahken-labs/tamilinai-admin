@@ -568,3 +568,13 @@ export function DownloadIcon({ className = "w-5 h-5", ...props }: IconProps) {
     </svg>
   );
 }
+
+export function UploadIcon({ className, ...props }: IconProps) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} {...props}>
+      <path d="M21.5066 15.1099V15.2399C21.5066 19.7099 19.7166 21.4999 15.2466 21.4999H8.73656C4.26656 21.4999 2.47656 19.7099 2.47656 15.2399V15.1099" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M12 15.0001V3.62012" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M15.3484 5.85L11.9984 2.5L8.64844 5.85" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}

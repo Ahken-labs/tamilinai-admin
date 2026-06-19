@@ -4,13 +4,13 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { listUsers, blockUser, unblockUser, toggleElite, listClosedAccounts, listInactiveUsers, markUserCalled } from "../../../lib/api";
 import type { AdminListUser, ClosedUser, InactiveUser } from "../../../lib/api";
-import Popup from "@/components/Popup";
-import TabBar from "@/components/TabBar";
+import Popup from "@/components/layout/Popup";
+import TabBar from "@/components/layout/TabBar";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { AlertTriangleIcon, CopyDocumentIcon, EliteCrownIcon, EliteProIcon, EliteVIPIcon, VerifiedIcon, DownloadExcelIcon } from "@/assets/Icons";
 import { exportToExcel } from "@/lib/exportExcel";
-import { useToast } from "@/components/Toast";
-import Button from "@/components/Button";
+import { useToast } from "@/components/ui/Toast";
+import Button from "@/components/layout/Button";
 
 // ── Module-level cache (persists across tab switches, cleared on logout) ───────
 type CacheEntry = { users: AdminListUser[]; page: number; hasMore: boolean };

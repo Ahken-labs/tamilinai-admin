@@ -8,12 +8,12 @@ import {
   deleteSeedUser,
   type SeedUser,
 } from "@/lib/api";
-import Popup from "@/components/Popup";
-import { useToast } from "@/components/Toast";
+import Popup from "@/components/layout/Popup";
+import { useToast } from "@/components/ui/Toast";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import CountryCodeDropdown from "@/components/CountryCodeDropdown";
-import SearchableDropdown from "@/components/SearchableDropdown";
-import MultiSelectDropdown from "@/components/MultiSelectDropdown";
+import CountryCodeDropdown from "@/components/dropdown/CountryCodeDropdown";
+import SearchableDropdown from "@/components/dropdown/SearchableDropdown";
+import MultiSelectDropdown from "@/components/dropdown/MultiSelectDropdown";
 import { CURRENCY_OPTIONS } from "@/constants/currencies";
 import { COUNTRY_OPTIONS } from "@/constants/location";
 import {

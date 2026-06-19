@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SectionLabel } from "@/components/ui";
+import { SectionLabel } from "@/components/ui/ui";
 import { ChevronDownIcon, ExternalArrowIcon } from "@/assets/Icons";
 import { FAQS } from "@/data/faq";
 import { EMAIL } from "@/data/contacts";

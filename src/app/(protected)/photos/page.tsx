@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listPendingPhotos, reviewPhoto } from "../../../lib/api";
 import type { PendingPhoto } from "../../../lib/api";
-import Popup from "@/components/Popup";
-import Button from "@/components/Button";
-import { useToast } from "@/components/Toast";
+import Popup from "@/components/layout/Popup";
+import Button from "@/components/layout/Button";
+import { useToast } from "@/components/ui/Toast";
 
 let photosCache: PendingPhoto[] | null = null;
 export function clearPhotosCache() { photosCache = null; }

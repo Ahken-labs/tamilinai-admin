@@ -1,4 +1,4 @@
-import { SectionLabel } from "@/components/ui";
+import { SectionLabel } from "@/components/ui/ui";
 import { MailIcon, WhatsAppIcon, ExternalArrowIcon } from "@/assets/Icons";
 import { SITE, EMAIL, CO_SITE, CO_NAME, ADDRESS } from "@/data/contacts";
 

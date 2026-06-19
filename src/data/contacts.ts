@@ -20,8 +20,8 @@ export const SOCIALS = [
   {
     key:   "whatsapp",
     label: "WhatsApp",
-    sub:   "+94 75 020 7507",
-    href:  "https://wa.me/94750207507",
+    sub:   "+94 77 075 0760",
+    href:  "https://wa.me/94770750760",
   },
   {
     key:   "x",
