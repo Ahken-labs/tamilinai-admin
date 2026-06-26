@@ -41,9 +41,9 @@ function fmtFileSize(bytes: number) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "approved") return <span className="px-2.5 py-0.5 rounded-full bg-[#F0FDF4] text-[#2E7D32] text-[12px] font-semibold">Approved</span>;
-  if (status === "rejected") return <span className="px-2.5 py-0.5 rounded-full bg-[#FFF0F3] text-[#B31B38] text-[12px] font-semibold">Rejected</span>;
-  return <span className="px-2.5 py-0.5 rounded-full bg-[#FFF8E1] text-[#E65100] text-[12px] font-semibold">Pending</span>;
+  if (status === "approved") return <span className="px-3 py-0.5 rounded-full bg-[#F0FDF4] text-[#2E7D32] text-[14px] font-semibold">Approved</span>;
+  if (status === "rejected") return <span className="px-3 py-0.5 rounded-full bg-[#FFF0F3] text-[#B31B38] text-[14px] font-semibold">Rejected</span>;
+  return <span className="px-3 py-0.5 rounded-full bg-[#FFF8E1] text-[#E65100] text-[14px] font-semibold">Pending</span>;
 }
 
 // Receipt upload popup 
@@ -291,9 +291,9 @@ function PlanDropdown({ value, onChange, disabled }: {
   }, [open]);
 
   const options = [
-    { value: "basic", label: "Elite Basic — 3 months" },
-    { value: "pro", label: "Elite Pro — 6 months" },
-    { value: "max", label: "Elite Max — 10 months" },
+    { value: "basic", label: "Elite Basic - 3 months" },
+    { value: "pro", label: "Elite Pro - 6 months" },
+    { value: "max", label: "Elite Max - 10 months" },
   ];
 
   return (
@@ -302,12 +302,12 @@ function PlanDropdown({ value, onChange, disabled }: {
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className={`flex w-full items-center justify-between gap-2 px-3 py-2 rounded-xl border text-[13px] font-medium transition-colors disabled:opacity-40
-          ${open ? "border-[#B31B38] bg-white text-[#0A0A0A]" : "border-[#E6E6E6] bg-white text-[#444] hover:border-[#CCCCCC]"}`}
+        className={`flex w-full items-center justify-between gap-2 px-3 py-2 rounded-xl border text-[12px] sm:text-[13px] md:text-[14px] font-medium transition-colors disabled:opacity-40
+          ${open ? "border-[#B31B38] bg-white text-[#0A0A0A]" : "border-[#F2F2F2] bg-[#F2F2F2] text-[#656565] hover:border-[#CCCCCC]"}`}
       >
-        <span>{options.find((o) => o.value === value)?.label ?? "Elite Basic — 3 months"}</span>
-        <svg viewBox="0 0 10 10" fill="none" className={`w-2.5 h-2.5 text-[#AAAAAA] transition-transform shrink-0 ${open ? "rotate-180" : ""}`}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <span>{options.find((o) => o.value === value)?.label ?? "Elite Basic - 3 months"}</span>
+        <svg viewBox="0 0 10 10" fill="none" className={`w-3 md:w-4 h-3 md:h-4 text-[#222222] transition-transform shrink-0 ${open ? "rotate-180" : ""}`}>
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
       {open && (
@@ -317,7 +317,7 @@ function PlanDropdown({ value, onChange, disabled }: {
               key={o.value}
               type="button"
               onClick={() => { onChange(o.value); setOpen(false); }}
-              className={`flex w-full items-center px-3 py-2 text-[13px] text-left transition-colors
+              className={`flex w-full items-center px-3 py-2 text-[12px] sm:text-[13px] md:text-[14px] text-left transition-colors
                 first:rounded-t-[10px] last:rounded-b-[10px]
                 ${value === o.value ? "bg-[#FFF0F3] text-[#B31B38] font-semibold" : "text-[#222] hover:bg-[#F5F5F5]"}`}
             >
@@ -416,47 +416,47 @@ function ReviewPanel({ order, onDone }: ReviewPanelProps) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-[#EAEAEA] p-5 flex flex-col gap-4">
-        <h3 className="text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Review</h3>
+      <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 md:p-5 flex flex-col gap-4">
+        <h3 className="text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Review</h3>
 
         <div className="flex gap-2">
           <button type="button" onClick={() => setAction("approve")}
-            className={`flex-1 py-2 rounded-xl text-[13px] font-semibold border transition-colors ${action === "approve" ? "bg-[#F0FDF4] border-[#2E7D32] text-[#2E7D32]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#2E7D32]"
+            className={`cursor-pointer flex-1 py-2 rounded-xl text-[14px] sm:text-[15px] md:text-[16px] font-semibold border transition-colors ${action === "approve" ? "bg-[#F0FDF4] border-[#2E7D32] text-[#2E7D32]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#2E7D32]"
               }`}>Approve</button>
           <button type="button" onClick={() => setAction("reject")}
-            className={`flex-1 py-2 rounded-xl text-[13px] font-semibold border transition-colors ${action === "reject" ? "bg-[#FFF0F3] border-[#B31B38] text-[#B31B38]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#B31B38]"
+            className={`cursor-pointer flex-1 py-2 rounded-xl text-[14px] sm:text-[15px] md:text-[16px] font-semibold border transition-colors ${action === "reject" ? "bg-[#FFF0F3] border-[#B31B38] text-[#B31B38]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#B31B38]"
               }`}>Reject</button>
         </div>
 
         {action === "approve" && (
           <div className="space-y-1">
-            <label className="text-[12px] text-[#888] font-medium">Grant plan</label>
+            <label className="text-[12px] sm:text-[13px] md:text-[14px] text-[#888] font-medium">Grant plan</label>
             <PlanDropdown value={newPlanKey} onChange={setNewPlanKey} disabled={submitting} />
-            {planChanged && <p className="text-[11px] text-[#E65100] font-medium">Plan changed {order.planKey} → {newPlanKey}</p>}
+            {planChanged && <p className="text-[12px] sm:text-[13px] md:text-[14px] text-[#E65100] font-medium">Plan changed {order.planKey} → {newPlanKey}</p>}
           </div>
         )}
 
         <div className="space-y-1">
-          <label className="text-[12px] text-[#888] font-medium">
-            {action === "reject" ? "Rejection reason (required — shown to user)" : "Note (optional, internal)"}
+          <label className="text-[12px] sm:text-[13px] md:text-[14px] text-[#888] font-medium">
+            {action === "reject" ? "Rejection reason (required - shown to user)" : "Note (optional, internal)"}
           </label>
           <textarea
             placeholder={action === "reject" ? "Enter reason for rejection…" : "Optional internal note…"}
             value={adminNote}
             onChange={(e) => setAdminNote(e.target.value)}
             rows={3}
-            className={`w-full border rounded-xl px-3 py-2 text-[13px] outline-none bg-white resize-none transition-colors ${action === "reject" && !adminNote.trim() ? "border-[#FFD5DF] focus:border-[#B31B38]" : "border-[#E6E6E6] focus:border-[#B31B38]"
+            className={`w-full border rounded-xl px-3 py-2 text-[14px] outline-none bg-white resize-none transition-colors ${action === "reject" && !adminNote.trim() ? "border-[#FFD5DF] focus:border-[#B31B38]" : "border-[#E6E6E6] focus:border-[#B31B38]"
               }`}
           />
           {action === "reject" && !adminNote.trim() && (
-            <p className="text-[11px] text-[#B31B38]">Required before rejecting</p>
+            <p className="text-[12px] md:text-[13px] text-[#B31B38]">Required before rejecting</p>
           )}
         </div>
 
-        {error && <p className="text-[12px] text-[#B31B38] bg-[#FFF0F3] border border-[#FFD5DF] rounded-lg px-3 py-2">{error}</p>}
+        {error && <p className="text-[12px] md:text-[13px] text-[#B31B38] bg-[#FFF0F3] border border-[#FFD5DF] rounded-lg px-3 py-2">{error}</p>}
 
         <button type="button" disabled={!canOpenConfirm || submitting} onClick={() => setShowConfirm(true)}
-          className={`py-2.5 rounded-xl text-[14px] font-bold transition-colors disabled:opacity-40 ${action === "approve" ? "bg-[#2E7D32] text-white hover:bg-[#1B5E20]" : "bg-[#B31B38] text-white hover:bg-[#8B0000]"
+          className={`cursor-pointer py-2.5 rounded-xl text-[14px] sm:text-[15px] md:text-[16px] font-semibold transition-colors disabled:opacity-40 ${action === "approve" ? "bg-[#2E7D32] text-white hover:bg-[#1B5E20]" : "bg-[#B31B38] text-white hover:bg-[#8B0000]"
             }`}>
           {action === "approve" ? "Approve transfer" : "Reject transfer"}
         </button>
@@ -685,55 +685,56 @@ export default function BankTransferDetailPage() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <StatusBadge status={order.status} />
-            <span className="text-[13px] text-[#888]">Submitted {fmtDate(order.createdAt)}</span>
+            <span className="text-[14px] md:text-[16px] text-[#888]">Submitted {fmtDate(order.createdAt)}</span>
           </div>
           <div className="text-right">
-            <p className="text-[22px] font-bold text-[#0A0A0A]">{fmtAmount(net, order.currency)}</p>
+            <p className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#0A0A0A]">{fmtAmount(net, order.currency)}</p>
             {order.discountCents > 0 && (
-              <p className="text-[12px] text-[#2E7D32]">
+              <p className="text-[14px] md:text-[16px] text-[#2E7D32]">
                 Saved {fmtAmount(order.discountCents, order.currency)}{order.promoCode ? ` · ${order.promoCode}` : ""}
               </p>
-            )}
+            )} 
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
         {/* Left — invoice details */}
-        <div className="lg:col-span-2 space-y-5">
+        <div className="lg:col-span-2 space-y-4 md:space-y-5">
 
           {/* Payment breakdown */}
           <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
-            <h3 className="text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-4">Payment breakdown</h3>
-            <table className="w-full text-[13px]">
+            <h3 className="text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-4">Payment breakdown</h3>
+            <table className="w-full text-[14px]">
               <thead>
                 <tr className="border-b border-[#F0F0F0]">
-                  <th className="text-left py-2 text-[#888] font-medium text-[12px]">Description</th>
-                  <th className="text-right py-2 text-[#888] font-medium text-[12px]">Amount</th>
+                  <th className="text-left py-2 text-[#888] font-medium text-[14px]">Description</th>
+                  <th className="text-right py-2 text-[#888] font-medium text-[14px]">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-[#F8F8F8]">
                   <td className="py-3">
                     <div className="font-semibold text-[#0A0A0A]">Elite {PLAN_LABELS[order.planKey] ?? order.planKey} Membership</div>
-                    <div className="text-[12px] text-[#888]">{order.months} month{order.months !== 1 ? "s" : ""} · Bank transfer</div>
+                    <div className="text-[13px] text-[#888]">{order.months} month{order.months !== 1 ? "s" : ""} · Bank transfer</div>
                   </td>
                   <td className="py-3 text-right font-medium">{fmtAmount(order.amountCents, order.currency)}</td>
                 </tr>
                 {order.discountCents > 0 && (
                   <tr className="border-b border-[#F8F8F8]">
                     <td className="py-3 text-[#2E7D32]">
-                      Discount {order.promoCode && (
-                        <span className="text-[11px] bg-[#F0FDF4] px-1.5 py-0.5 rounded-full ml-1">{order.promoCode}</span>
-                      )}
+                      Discount 
+                      {order.promoCode && (
+                        <span className="text-[11px] sm:text-[12px] md:text-[13px] bg-[#F0FDF4] px-2.5 py-0.5 rounded-full ml-2">{order.promoCode}</span>
+                      )} 
                     </td>
                     <td className="py-3 text-right text-[#2E7D32] font-medium">− {fmtAmount(order.discountCents, order.currency)}</td>
                   </tr>
-                )}
+                )} 
               </tbody>
               <tfoot>
                 <tr>
-                  <td className="pt-3 font-bold text-[15px]">Total charged</td>
+                  <td className="pt-3 font-semibold text-[14px] s:text-[1spx] md:text-[16px]">Total charged</td>
                   <td className="pt-3 text-right font-bold text-[15px]">{fmtAmount(net, order.currency)}</td>
                 </tr>
               </tfoot>
@@ -742,8 +743,8 @@ export default function BankTransferDetailPage() {
 
           {/* Customer details */}
           <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
-            <h3 className="text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-3">Customer</h3>
-            <dl className="space-y-2 text-[13px]">
+            <h3 className="text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-3">Customer</h3>
+            <dl className="space-y-2 text-[14px]">
               {([
                 ["Full name", order.userName],
                 ["Inai ID", order.userDisplayId],
@@ -761,9 +762,10 @@ export default function BankTransferDetailPage() {
             </dl>
           </div>
 
+
           {/* Receipt */}
           <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
-            <h3 className="text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-3">Receipt</h3>
+            <h3 className="text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-3">Receipt</h3>
             <div className="flex gap-2 flex-wrap">
               {order.receiptPresignedUrl ? (
                 <>
