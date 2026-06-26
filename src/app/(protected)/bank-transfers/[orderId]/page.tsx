@@ -762,6 +762,7 @@ export default function BankTransferDetailPage() {
             </dl>
           </div>
 
+
           {/* Receipt */}
           <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
             <h3 className="text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-3">Receipt</h3>
