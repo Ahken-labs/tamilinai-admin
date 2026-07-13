@@ -559,3 +559,65 @@ export async function adminUploadBankReceipt(
   }
   return res.json();
 }
+
+// ─── Business vendor ───────────────────────────────────────────────────────────
+
+export type AdminBusinessSummary = {
+  id: string;
+  username: string;
+  businessName: string;
+  category: string;
+  district: string;
+  createdAt: string;
+  isApproved: boolean;
+  isRejected: boolean;
+};
+
+export type AdminBizServicePhoto = { id: string; url: string; displayOrder: number };
+export type AdminBizService = {
+  id: string;
+  title: string;
+  price: number;
+  description: string;
+  displayOrder: number;
+  photos: AdminBizServicePhoto[];
+};
+
+export type AdminBusinessDetail = AdminBusinessSummary & {
+  specify?: string;
+  bio?: string;
+  experience: string;
+  qualifications?: string;
+  careerHighlight?: string;
+  village: string;
+  streetAddress?: string;
+  countryCode: string;
+  serviceDistricts: string[];
+  islandWide: boolean;
+  coverPhotoUrl: string | null;
+  logoUrl: string | null;
+  rejectionReason?: string;
+  approvedAt?: string;
+  services: AdminBizService[];
+};
+
+export async function listAdminBusinesses(
+  status: "pending" | "approved" | "rejected",
+  page = 1,
+): Promise<{ businesses: AdminBusinessSummary[]; page: number; hasMore: boolean }> {
+  return apiFetch(`/businesses?status=${status}&page=${page}`);
+}
+
+export async function getAdminBusiness(id: string): Promise<AdminBusinessDetail> {
+  return apiFetch(`/businesses/${id}`);
+}
+
+export async function reviewAdminBusiness(
+  id: string,
+  payload: { action: "approve" | "reject"; rejectionReason?: string },
+): Promise<{ ok: boolean }> {
+  return apiFetch(`/businesses/${id}/review`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
