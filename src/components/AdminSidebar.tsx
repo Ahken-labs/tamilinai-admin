@@ -12,7 +12,8 @@ import {
   SignOutIcon,
   MenuIcon,
   DashboardIcon,
-  SeedIcon, 
+  SeedIcon,
+  BuildingIcon,
 } from "@/assets/Icons";
 import Popup from "./layout/Popup";
 import { clearUsersCache } from "@/app/(protected)/users/page";
@@ -24,6 +25,7 @@ const NAV = [
   { label: "Photos", href: "/photos", Icon: PhotoIcon },
   { label: "Billing", href: "/billing", Icon: BillingIcon },
   { label: "Bank Transfers", href: "/bank-transfers", Icon: BillingIcon },
+  { label: "Businesses", href: "/businesses", Icon: BuildingIcon },
   { label: "Notifications", href: "/notifications", Icon: BellIcon },
   // remove this once website gets real profile traffic
   { label: "Seeded", href: "/seeded", Icon: SeedIcon },
