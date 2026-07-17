@@ -119,10 +119,11 @@ export async function toggleElite(
   userId: string,
   elite: boolean,
   planKey?: string,
+  amountPaid?: number,
 ): Promise<{ message: string; isElite: boolean; planKey: string | null }> {
   return apiFetch(`/users/${userId}/elite`, {
     method: "PATCH",
-    body: JSON.stringify({ elite, planKey }),
+    body: JSON.stringify({ elite, planKey, amountPaid }),
   });
 }
 

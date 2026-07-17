@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, type ReactNode } from "react";
+import React, { useEffect, useState, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAdminUser, getUserPhoto, setContactLimit, blockUser, unblockUser, toggleElite, clearAboutMe, editUserName } from "@/lib/api";
 import type { AdminUserDetail } from "@/lib/api";
@@ -69,63 +69,7 @@ function EliteBadge({ planKey }: { planKey?: string | null }) {
   );
 }
 
-function ElitePlanDropdown({ value, onChange, disabled }: {
-  value: "basic" | "pro" | "max";
-  onChange: (v: "basic" | "pro" | "max") => void;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function onMouseDown(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onMouseDown);
-    return () => document.removeEventListener("mousedown", onMouseDown);
-  }, [open]);
-
-  const options: { value: "basic" | "pro" | "max"; label: string }[] = [
-    { value: "basic", label: "Basic" },
-    { value: "pro", label: "Pro" },
-    { value: "max", label: "Max" },
-  ];
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[14px] md:text-[16px] font-medium
-          transition-colors disabled:opacity-40 touch-manipulation
-          ${open ? "border-[#B31B38] bg-white text-[#0A0A0A]" : "border-[#E6E6E6] bg-white text-[#444] hover:border-[#CCCCCC]"}`}
-      >
-        {options.find((o) => o.value === value)?.label ?? "Basic"}
-        <svg viewBox="0 0 10 10" fill="none" className={`w-2.5 h-2.5 text-[#AAAAAA] transition-transform ${open ? "rotate-180" : ""}`}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute left-0 top-[calc(100%+3px)] z-50 min-w-[90px] rounded-[10px] border border-[#EBEBEB] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.10)]">
-          {options.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => { onChange(o.value); setOpen(false); }}
-              className={`flex w-full items-center px-3 py-1.5 text-[14px] md:text-[16px] text-left transition-colors
-                first:rounded-t-[10px] last:rounded-b-[10px]
-                ${value === o.value ? "bg-[#FFF0F3] text-[#B31B38] font-semibold" : "text-[#222] hover:bg-[#F5F5F5]"}`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function SectionCard({ title, children, id, className }: { title: string; children: ReactNode; id?: string; className?: string }) {
   return (
@@ -169,8 +113,142 @@ function Badge({ label, color }: { label: string; color: "green" | "red" | "oran
 
 type PopupAction =
   | { type: "block" | "unblock" | "elite_remove" | "clear_about" }
-  | { type: "elite_grant"; plan: "basic" | "pro" | "max" }
+  | { type: "elite_grant"; plan: "basic" | "pro" | "max"; amountPaid: number }
   | { type: "contact_limit"; limit: number | null };
+
+type EliteGrantStep = "pick-type" | "paid-details";
+
+function EliteGrantModal({ userName, onClose, onGrant }: {
+  userName: string;
+  onClose: () => void;
+  onGrant: (plan: "basic" | "pro" | "max", amountPaid: number) => void;
+}) {
+  const [grantType, setGrantType] = useState<"free" | "paid">("free");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [step, setStep] = useState<EliteGrantStep>("pick-type");
+  const [plan, setPlan] = useState<"basic" | "pro" | "max">("basic");
+  const [amount, setAmount] = useState("");
+
+  const PLAN_OPTIONS: { value: "basic" | "pro" | "max"; label: string; months: string }[] = [
+    { value: "basic", label: "Elite Basic", months: "3 months" },
+    { value: "pro",   label: "Elite Pro",   months: "6 months" },
+    { value: "max",   label: "Elite VIP",   months: "10 months" },
+  ];
+
+  function handleContinue() {
+    setStep("paid-details");
+  }
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-[400px] p-6" onClick={(e) => e.stopPropagation()}>
+        {step === "pick-type" && (
+          <>
+            <h2 className="text-[18px] font-semibold text-[#222] mb-1">Grant Elite — {userName}</h2>
+            <p className="text-[14px] text-[#888] mb-5">Select the grant type.</p>
+
+            {/* Custom dropdown */}
+            <div className="mb-6 relative">
+              <label className="block text-[13px] font-medium text-[#555] mb-1.5">Grant type</label>
+              <button
+                type="button"
+                onClick={() => setDropdownOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-[#EAEAEA] text-[15px] text-[#222] bg-white cursor-pointer hover:border-[#CCCCCC] transition-colors"
+              >
+                <span>{grantType === "free" ? "Free user" : "Paid user"}</span>
+                <svg viewBox="0 0 10 10" fill="none" className={`w-3 h-3 text-[#AAAAAA] transition-transform ${dropdownOpen ? "rotate-180" : ""}`}>
+                  <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {dropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
+                  <div className="absolute left-0 right-0 top-[calc(100%+3px)] z-20 rounded-xl border border-[#EBEBEB] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.10)] overflow-hidden">
+                    {(["free", "paid"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => { setGrantType(opt); setDropdownOpen(false); }}
+                        className={`w-full flex items-center px-4 py-2.5 text-[15px] text-left transition-colors
+                          ${grantType === opt ? "bg-[#FFF0F3] text-[#B31B38] font-semibold" : "text-[#222] hover:bg-[#F5F5F5]"}`}
+                      >
+                        {opt === "free" ? "Free user" : "Paid user"}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#EAEAEA] text-[15px] font-medium text-[#444] hover:bg-[#F5F5F5] transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button type="button" onClick={handleContinue} className="flex-1 py-2.5 rounded-xl bg-[#B31B38] text-[15px] font-medium text-white hover:bg-[#8E162D] transition-colors cursor-pointer">
+                Continue
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "paid-details" && (
+          <>
+            <button type="button" onClick={() => setStep("pick-type")} className="flex items-center gap-1 text-[13px] text-[#888] hover:text-[#222] mb-4 cursor-pointer transition-colors">
+              <svg viewBox="0 0 10 10" fill="none" className="w-3 h-3"><path d="M6.5 2L3.5 5l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              Back
+            </button>
+            <h2 className="text-[18px] font-semibold text-[#222] mb-1">{grantType === "paid" ? "Paid" : "Free"} Elite — {userName}</h2>
+            <p className="text-[14px] text-[#888] mb-5">{grantType === "paid" ? "Select plan and enter the amount received." : "Select the plan to grant."}</p>
+
+            <div className={grantType === "paid" ? "mb-4" : "mb-6"}>
+              <label className="block text-[13px] font-medium text-[#555] mb-1.5">Plan</label>
+              <div className="flex gap-2">
+                {PLAN_OPTIONS.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => setPlan(o.value)}
+                    className={`flex-1 py-2 rounded-xl border text-[13px] font-medium transition-colors cursor-pointer
+                      ${plan === o.value ? "border-[#B31B38] bg-[#FFF0F3] text-[#B31B38]" : "border-[#EAEAEA] text-[#444] hover:bg-[#F5F5F5]"}`}
+                  >
+                    <div>{o.label}</div>
+                    <div className="text-[11px] font-normal opacity-60">{o.months}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {grantType === "paid" && (
+              <div className="mb-6">
+                <label className="block text-[13px] font-medium text-[#555] mb-1.5">Amount received (Rs.)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="e.g. 2500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#EAEAEA] text-[15px] text-[#222] outline-none focus:border-[#B31B38] transition-colors"
+                />
+                <p className="mt-1 text-[12px] text-[#AAAAAA]">Enter 0 if a coupon was applied or amount is unknown.</p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              disabled={grantType === "paid" && amount === ""}
+              onClick={() => onGrant(plan, grantType === "paid" ? Number(amount) : 0)}
+              className="w-full py-3 rounded-xl bg-[#B31B38] text-[15px] font-semibold text-white hover:bg-[#8E162D] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Grant Elite {PLAN_OPTIONS.find((o) => o.value === plan)?.label.replace("Elite ", "")}
+              {grantType === "paid" && amount ? ` — Rs. ${Number(amount).toLocaleString()}` : ""}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function UserDetailPage() {
   const { userId } = useParams() as { userId: string };
@@ -186,11 +264,10 @@ export default function UserDetailPage() {
   // Contact limit UI
   const [limitInput, setLimitInput] = useState("");
   const [pendingAction, setPending] = useState<PopupAction | null>(null);
-  const [elitePlan, setElitePlan] = useState<"basic" | "pro" | "max">("basic");
 
   // 3-dots menu
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showElite, setShowElite] = useState(false);
+  const [eliteModalOpen, setEliteModalOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [loadingPhoto, setLoadingPhoto] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -247,7 +324,7 @@ export default function UserDetailPage() {
         setUser((u) => u ? { ...u, isBlocked: false } : u);
         toast({ type: "success", title: `${user.name} unblocked` });
       } else if (act.type === "elite_grant") {
-        await toggleElite(user.id, true, act.plan);
+        await toggleElite(user.id, true, act.plan, act.amountPaid);
         setUser((u) => u ? { ...u, isElite: true, elitePlanKey: act.plan } : u);
         toast({ type: "success", title: "Elite granted", message: `${user.name} now has Elite ${ucFirst(act.plan)}.` });
       } else if (act.type === "elite_remove") {
@@ -285,7 +362,14 @@ export default function UserDetailPage() {
     if (pendingAction.type === "elite_remove")
       return { title: "Remove Elite access?", subtitle: `${user.name} will lose Elite access and revert to the free plan.`, label: "Yes, remove", danger: true };
     if (pendingAction.type === "elite_grant")
-      return { title: `Grant Elite ${ucFirst(pendingAction.plan)}?`, subtitle: `${user.name} will receive Elite ${ucFirst(pendingAction.plan)} access.`, label: "Yes, grant", danger: false };
+      return {
+        title: `Grant Elite ${ucFirst(pendingAction.plan)}?`,
+        subtitle: pendingAction.amountPaid > 0
+          ? `${user.name} will receive Elite ${ucFirst(pendingAction.plan)} access. Payment recorded: Rs. ${pendingAction.amountPaid.toLocaleString()}.`
+          : `${user.name} will receive Elite ${ucFirst(pendingAction.plan)} access (free grant).`,
+        label: "Yes, grant",
+        danger: false,
+      };
     if (pendingAction.type === "clear_about")
       return { title: "Clear About Me?", subtitle: `This will permanently erase ${user.name}'s About Me. They can rewrite it anytime.`, label: "Yes, clear", danger: true };
     if (pendingAction.type === "contact_limit") {
@@ -354,39 +438,33 @@ export default function UserDetailPage() {
           </div>
           {/* 3-dots menu */}
           <div className="relative shrink-0">
-            {showElite ? (
-              <Button sub secondary text="Done" onPress={() => setShowElite(false)} />
-            ) : (
+            <button
+              type="button"
+              onClick={() => setMenuOpen((p) => !p)}
+              className="cursor-pointer text-[#222222] hover:text-[#B31B38] transition-colors"
+            >
+              <ThreeDotsIcon className="w-6 sm:w-8 h-6 sm:h-8" />
+            </button>
+            {menuOpen && (
               <>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((p) => !p)}
-                  className="cursor-pointer text-[#222222] hover:text-[#B31B38] transition-colors"
-                >
-                  <ThreeDotsIcon className="w-6 sm:w-8 h-6 sm:h-8" />
-                </button>
-                {menuOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                    <div className="absolute right-0 top-9 z-20 w-40 bg-white border border-[#EEEEEE] rounded-xl shadow-lg py-1 overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => { setMenuOpen(false); setNameInput(user.name); setNameError(""); setEditNameOpen(true); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#222] hover:bg-[#F5F5F5] transition-colors"
-                      >
-                        Edit name
-                      </button>
-                      <div className="mx-3 border-t border-[#F0F0F0]" />
-                      <button
-                        type="button"
-                        onClick={() => { setMenuOpen(false); setShowElite(true); document.getElementById("status-actions-section")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#222] hover:bg-[#F5F5F5] transition-colors"
-                      >
-                        Elite
-                      </button>
-                    </div>
-                  </>
-                )}
+                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-9 z-20 w-40 bg-white border border-[#EEEEEE] rounded-xl shadow-lg py-1 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setNameInput(user.name); setNameError(""); setEditNameOpen(true); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#222] hover:bg-[#F5F5F5] transition-colors"
+                  >
+                    Edit name
+                  </button>
+                  <div className="mx-3 border-t border-[#F0F0F0]" />
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); setEliteModalOpen(true); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[14px] md:text-[16px] text-[#222] hover:bg-[#F5F5F5] transition-colors"
+                  >
+                    Elite
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -453,15 +531,8 @@ export default function UserDetailPage() {
               onPress={() => setPending(user.isBlocked ? { type: "unblock" } : { type: "block" })}
               disabled={acting}
             />
-            {showElite && (
-              user.isElite ? (
-                <Button onPress={() => setPending({ type: "elite_remove" })} disabled={acting} className="!py-1.5" white text="Remove Elite" />
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <ElitePlanDropdown value={elitePlan} onChange={(v) => setElitePlan(v)} disabled={acting} />
-                  <Button onPress={() => setPending({ type: "elite_grant", plan: elitePlan })} disabled={acting} className="!py-1.5" white text="Grant Elite" />
-                </div>
-              )
+            {user.isElite && (
+              <Button onPress={() => setPending({ type: "elite_remove" })} disabled={acting} className="!py-1.5" white text="Remove Elite" />
             )}
           </div>
         </SectionCard>
@@ -662,6 +733,17 @@ export default function UserDetailPage() {
           { label: popupProps.label, onClick: executeAction, variant: popupProps.danger ? "danger" : "primary" },
         ]}
       />
+
+      {eliteModalOpen && !user.isElite && (
+        <EliteGrantModal
+          userName={user.name}
+          onClose={() => setEliteModalOpen(false)}
+          onGrant={(plan, amountPaid) => {
+            setEliteModalOpen(false);
+            setPending({ type: "elite_grant", plan, amountPaid });
+          }}
+        />
+      )}
     </>
   );
 }
