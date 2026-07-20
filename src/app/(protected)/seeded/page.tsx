@@ -315,10 +315,33 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
     });
   }
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
-    setPhoto(file);
-    setPhotoPreview(file ? URL.createObjectURL(file) : null);
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.files?.[0] ?? null;
+    if (!raw) { setPhoto(null); setPhotoPreview(null); return; }
+    const compressed = await new Promise<File>((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(raw);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX = 1200;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width >= height) { height = Math.round((height / width) * MAX); width = MAX; }
+          else { width = Math.round((width / height) * MAX); height = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (!blob || blob.size >= raw.size) { resolve(raw); return; }
+          resolve(new File([blob], raw.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+        }, "image/jpeg", 0.7);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(raw); };
+      img.src = url;
+    });
+    setPhoto(compressed);
+    setPhotoPreview(URL.createObjectURL(compressed));
   }
 
   async function handleSubmit(e: { preventDefault(): void }) {
