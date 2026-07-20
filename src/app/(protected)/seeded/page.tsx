@@ -102,22 +102,28 @@ function Input({
   onChange,
   placeholder,
   type = "text",
+  error,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
+  error?: string;
 }) {
   return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="h-[40px] px-3 rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA]
-        text-[14px] text-[#0A0A0A] placeholder:text-[#BBBBBB] outline-none
-        focus:border-[#B31B38] transition-colors"
-    />
+    <div className="flex flex-col gap-1">
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`h-[40px] px-3 rounded-[10px] border bg-[#FAFAFA]
+          text-[14px] text-[#0A0A0A] placeholder:text-[#BBBBBB] outline-none
+          focus:border-[#B31B38] transition-colors
+          ${error ? "border-[#B31B38]" : "border-[#EBEBEB]"}`}
+      />
+      {error && <p className="text-[12px] text-[#B31B38]">{error}</p>}
+    </div>
   );
 }
 
@@ -261,17 +267,31 @@ const EMPTY_FORM: FormState = {
 
 // ── Create form ───────────────────────────────────────────────────────────────
 
+const SEED_DRAFT_KEY = "seed_form_draft";
+
 function CreateForm({ onCreated }: { onCreated: () => void }) {
   const { toast } = useToast();
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [form, setForm] = useState<FormState>(() => {
+    try {
+      const saved = sessionStorage.getItem(SEED_DRAFT_KEY);
+      return saved ? { ...EMPTY_FORM, ...JSON.parse(saved) } : EMPTY_FORM;
+    } catch { return EMPTY_FORM; }
+  });
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLDivElement>(null);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      sessionStorage.setItem(SEED_DRAFT_KEY, JSON.stringify(next));
+      return next;
+    });
   }
 
   const canGrantTrustBadge = form.emailVerified && form.phoneVerified && !!form.phone;
@@ -289,11 +309,9 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
         v === "Hindu" ? CASTE_OPTIONS_HINDU :
         v === "Christian" ? CASTE_OPTIONS_CHRISTIAN :
         CASTE_OPTIONS;
-      return {
-        ...f,
-        religion: v,
-        caste: newCasteOpts.includes(f.caste) ? f.caste : "",
-      };
+      const next = { ...f, religion: v, caste: newCasteOpts.includes(f.caste) ? f.caste : "" };
+      sessionStorage.setItem(SEED_DRAFT_KEY, JSON.stringify(next));
+      return next;
     });
   }
 
@@ -305,10 +323,15 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
-    if (!form.name || !form.email) {
-      setError("Name and email are required.");
+    const errs: Partial<Record<keyof FormState, string>> = {};
+    if (!form.name) errs.name = "Name is required.";
+    if (!form.email) errs.email = "Email is required.";
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      (errs.name ? nameRef : emailRef).current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+    setFieldErrors({});
     setSaving(true);
     setError(null);
     try {
@@ -333,6 +356,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       if (photo) fd.append("photo", photo);
 
       const result = await createSeedUser(fd);
+      sessionStorage.removeItem(SEED_DRAFT_KEY);
       setForm(EMPTY_FORM);
       setPhoto(null);
       setPhotoPreview(null);
@@ -345,7 +369,12 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       onCreated();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to create user.";
-      setError(msg);
+      if (msg.toLowerCase().includes("email")) {
+        setFieldErrors((e) => ({ ...e, email: msg }));
+        emailRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        setError(msg);
+      }
       toast({ type: "error", title: "Failed to create", message: msg });
     } finally {
       setSaving(false);
@@ -371,9 +400,11 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       {/* ── Required ── */}
       {sectionLabel("Required")}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <FieldRow label="Full Name *">
-          <Input value={form.name} onChange={(v) => set("name", v)} placeholder="Sanjeevan" />
-        </FieldRow>
+        <div ref={nameRef}>
+          <FieldRow label="Full Name *">
+            <Input value={form.name} onChange={(v) => { set("name", v); setFieldErrors((e) => ({ ...e, name: undefined })); }} placeholder="Sanjeevan" error={fieldErrors.name} />
+          </FieldRow>
+        </div>
 
         <FieldRow label="Gender *">
           <SearchableDropdown
@@ -394,9 +425,11 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
           />
         </FieldRow>
 
-        <FieldRow label="Email * (internal only)">
-          <Input value={form.email} onChange={(v) => set("email", v)} placeholder="sanjeevanyogan@gmail.com" type="email" />
-        </FieldRow>
+        <div ref={emailRef}>
+          <FieldRow label="Email * (internal only)">
+            <Input value={form.email} onChange={(v) => { set("email", v); setFieldErrors((e) => ({ ...e, email: undefined })); }} placeholder="sanjeevanyogan@gmail.com" type="email" error={fieldErrors.email} />
+          </FieldRow>
+        </div>
       </div>
 
       {/* ── Phone ── */}
@@ -410,7 +443,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             value={form.phone}
             onChange={(v) => {
               if (!v) {
-                setForm((f) => ({ ...f, phone: "", phoneVerified: false, trustBadge: false }));
+                setForm((f) => { const next = { ...f, phone: "", phoneVerified: false, trustBadge: false }; sessionStorage.setItem(SEED_DRAFT_KEY, JSON.stringify(next)); return next; });
               } else {
                 set("phone", v);
               }
@@ -653,14 +686,14 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
           <Checkbox
             checked={form.emailVerified}
             onChange={(v) =>
-              setForm((f) => ({ ...f, emailVerified: v, trustBadge: v ? f.trustBadge : false }))
+              setForm((f) => { const next = { ...f, emailVerified: v, trustBadge: v ? f.trustBadge : false }; sessionStorage.setItem(SEED_DRAFT_KEY, JSON.stringify(next)); return next; })
             }
             label="Email Verified"
           />
           <Checkbox
             checked={form.phoneVerified}
             onChange={(v) =>
-              setForm((f) => ({ ...f, phoneVerified: v, trustBadge: v ? f.trustBadge : false }))
+              setForm((f) => { const next = { ...f, phoneVerified: v, trustBadge: v ? f.trustBadge : false }; sessionStorage.setItem(SEED_DRAFT_KEY, JSON.stringify(next)); return next; })
             }
             label="Phone Verified"
             disabled={!form.phone}
@@ -778,7 +811,7 @@ export default function SeededPage() {
   const [page, setPage]               = useState(1);
   const [hasMore, setHasMore]         = useState(false);
   const [error, setError]             = useState<string | null>(null);
-  const [showForm, setShowForm]       = useState(false);
+  const [showForm, setShowForm]       = useState(() => !!sessionStorage.getItem(SEED_DRAFT_KEY));
   const [pendingDelete, setPendingDelete] = useState<SeedUser | null>(null);
   const [deleting, setDeleting]       = useState(false);
 
