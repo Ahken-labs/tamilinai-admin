@@ -95,7 +95,7 @@ export async function reviewPhoto(
 export async function listUsers(
   page: number,
   search?: string,
-  filter?: "blocked" | "elite" | "on_break",
+  filter?: "blocked" | "elite" | "on_break" | "seeded",
 ): Promise<{ users: AdminListUser[]; page: number; hasMore: boolean }> {
   const params = new URLSearchParams({ page: String(page) });
   if (search) params.set("search", search);
@@ -320,6 +320,7 @@ export type AdminUserDetail = {
   contactViewLimitOverride: number | null;
   createdAt: string;
   updatedAt: string;
+  lastActiveAt: string | null;
   profile: {
     dateOfBirth: string | null;
     maritalStatus: string | null;
