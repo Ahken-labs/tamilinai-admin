@@ -519,6 +519,7 @@ export default function UserDetailPage() {
 
         {/* Status & Actions */}
         <SectionCard title="Status & Actions" id="status-actions-section">
+          <InfoRow label="Last active" value={formatDateTime(user.lastActiveAt ?? user.createdAt)} />
           <InfoRow label="Elite" value={user.isElite ? `Yes (${user.elitePlanKey ?? "basic"}) — expires ${formatDate(user.eliteExpiresAt)}` : "No"} />
           <InfoRow label="Blocked" value={user.isBlocked ? "Yes" : "No"} />
           <InfoRow label="On break" value={user.isOnBreak ? `Yes — until ${formatDate(user.breakEndsAt)}` : "No"} />
@@ -582,8 +583,14 @@ export default function UserDetailPage() {
             <InfoRow label="Drinking" value={p.drinkingHabit ? ucFirst(p.drinkingHabit) : null} />
             <InfoRow label="Languages" value={p.languagesSpoken?.join(", ") || null} />
             <InfoRow label="Hobbies" value={p.hobbies?.join(", ") || null} />
-            <InfoRow label="Photo visibility" value={ucFirst(p.photoVisibility)} />
-            <InfoRow label="Photo status" value={ucFirst(p.photoStatus)} />
+            {p.hasPhoto ? (
+              <>
+                <InfoRow label="Photo visibility" value={ucFirst(p.photoVisibility)} />
+                <InfoRow label="Photo status" value={ucFirst(p.photoStatus)} />
+              </>
+            ) : (
+              <InfoRow label="Photo status" value="No photo uploaded" />
+            )}
           </SectionCard>
         )}
 

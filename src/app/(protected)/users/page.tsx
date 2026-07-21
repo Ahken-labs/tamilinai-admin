@@ -66,7 +66,7 @@ function PhoneCopyCell({ phone }: { phone: string }) {
   );
 }
 
-type Tab = "all" | "blocked" | "elite" | "on_break" | "closed" | "inactive45" | "inactive7";
+type Tab = "all" | "blocked" | "elite" | "on_break" | "closed" | "inactive45" | "inactive7" | "seeded";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "all", label: "All Users" },
@@ -76,6 +76,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "closed", label: "Closed" },
   { key: "inactive45", label: "Inactive 45d+" },
   { key: "inactive7", label: "Inactive 7d" },
+  { key: "seeded", label: "Seeded" },
 ];
 
 // ── Skeleton rows ─────────────────────────────────────────────────────────────
@@ -122,7 +123,7 @@ type PendingUserAction =
   | { type: "elite_grant"; userId: string; name: string; plan: "basic" | "pro" | "max" }
   | { type: "elite_remove"; userId: string; name: string };
 
-function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" }) {
+function AllUsersTab({ filter }: { filter?: "blocked" | "elite" | "on_break" | "seeded" }) {
   const router = useRouter();
   const { toast } = useToast();
   const cacheKey = filter ?? "all";
@@ -768,6 +769,7 @@ export default function UsersPage() {
       {tab === "closed" && <ClosedAccountsTab />}
       {tab === "inactive45" && <InactiveUsersTab days={45} onReady={(fn) => setExportFn(() => fn)} />}
       {tab === "inactive7" && <InactiveUsersTab days={7} onReady={(fn) => setExportFn(() => fn)} />}
+      {tab === "seeded" && <AllUsersTab filter="seeded" />}
     </div>
   );
 }
