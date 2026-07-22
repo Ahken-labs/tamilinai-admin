@@ -14,6 +14,7 @@ import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { exportToExcel } from "@/lib/exportExcel";
 import { DownloadExcelIcon } from "@/assets/Icons";
 import Button from "@/components/layout/Button";
+import SearchableDropdown from "@/components/dropdown/SearchableDropdown";
 
 type Tab = "subscriptions" | "refunds" | "promo";
 
@@ -456,6 +457,7 @@ function PromoCodesTab() {
     const discountLkr = parseInt(form.discountLkr || "0", 10);
     const discountGbpCents = Math.round(parseFloat(form.discountGbp || "0") * 100);
     if (!discountLkr && !discountGbpCents) { setFormError("Enter at least one discount amount."); return; }
+    if (form.scope === "business" && discountLkr > 3000) { setFormError("Business discount cannot exceed Rs 3,000."); return; }
 
     setCreating(true);
     setFormError("");
@@ -501,46 +503,57 @@ function PromoCodesTab() {
           <h3 className="text-[14px] md:text-[16px] font-semibold text-[#0A0A0A] mb-4">New Promo Code</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Code *</label>
+              <label className="text-[14px] sm:text-[15px] md:text-[16px] font-medium text-[#222] mb-1 block">Code *</label>
               <input type="text" placeholder="e.g. WELCOME50" value={form.code}
                 onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
+                className="w-full rounded-[12px] px-3 py-2.5 h-10 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2]
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
             <div>
               <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Scope</label>
-              <select value={form.scope} onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white outline-none focus:border-[#B31B38] transition-colors">
-                <option value="user">User (matrimony subscriptions)</option>
-                <option value="business">Business (boost checkout)</option>
-              </select>
+              <SearchableDropdown
+                value={form.scope}
+                onChange={(v) => setForm((f) => ({
+                  ...f,
+                  scope: v,
+                  discountLkr: v === "business" ? "2000" : "",
+                  discountGbp: "",
+                  maxUses: v === "business" ? "1" : "",
+                }))}
+                options={[
+                  { value: "user",     label: "User (matrimony subscriptions)" },
+                  { value: "business", label: "Business (boost checkout)" },
+                ]}
+              />
             </div>
             <div>
-              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Discount LKR (Rs)</label>
+              <label className="text-[14px] sm:tecxt-[15px] md:text-[16px] font-medium text-[#222] mb-1 block">Discount LKR (Rs)</label>
               <input type="number" placeholder="e.g. 500" value={form.discountLkr}
                 onChange={(e) => setForm((f) => ({ ...f, discountLkr: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
+                className="w-full rounded-[12px] px-3 py-2.5 h-10 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2]
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
+            {form.scope === "user" && (
+              <div>
+                <label className="text-[14px] sm:text-[15px] md:text-[16px] font-medium text-[#222] mb-1 block">Discount GBP (£)</label>
+                <input type="number" step="0.01" placeholder="e.g. 2.00" value={form.discountGbp}
+                  onChange={(e) => setForm((f) => ({ ...f, discountGbp: e.target.value }))}
+                  className="w-full rounded-[12px] px-3 py-2.5 h-10 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2]
+                    outline-none focus:border-[#B31B38] transition-colors" />
+              </div>
+            )}
             <div>
-              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Discount GBP (£)</label>
-              <input type="number" step="0.01" placeholder="e.g. 2.00" value={form.discountGbp}
-                onChange={(e) => setForm((f) => ({ ...f, discountGbp: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
-                  outline-none focus:border-[#B31B38] transition-colors" />
-            </div>
-            <div>
-              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Max Uses (blank = unlimited)</label>
+              <label className="text-[14px] sm:text-[15px] md:text-[16px] font-medium text-[#222] mb-1 block">Max Uses (blank = unlimited)</label>
               <input type="number" placeholder="e.g. 100" value={form.maxUses}
                 onChange={(e) => setForm((f) => ({ ...f, maxUses: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
+                className="w-full rounded-[12px] px-3 py-2.5 h-10 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2]
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Expires At (blank = never)</label>
+              <label className="text-[14px] sm:text-[15px] md:text-[16px] font-medium text-[#222] mb-1 block">Expires At (blank = never)</label>
               <input type="datetime-local" value={form.expiresAt}
                 onChange={(e) => setForm((f) => ({ ...f, expiresAt: e.target.value }))}
-                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
+                className="w-full rounded-[12px] px-3 py-2.5 h-10 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2]
                   outline-none focus:border-[#B31B38] transition-colors" />
             </div>
           </div>

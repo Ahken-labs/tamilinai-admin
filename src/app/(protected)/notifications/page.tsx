@@ -279,15 +279,15 @@ export default function NotificationsPage() {
           <div className="space-y-0">
             {mode === "specific" && (
               <div className="flex flex-col gap-1 md:gap-2">
-                <label className="text-[14px] md:text-[16px] font-medium text-[#555]">User ID</label>
+                <label className="text-[14px] sm:text-[15px] md:text-[16px] font-medium text-[#555]">User ID</label>
                 <div className="relative flex items-center">
                   <input
                     type="text"
                     value={targetUserId}
                     onChange={(e) => setTargetId(e.target.value)}
                     placeholder="Paste the user's UUID"
-                    className="w-full border border-[#E6E6E6] rounded-xl px-4 py-2.5 pr-10 text-sm text-[#222]
-                      placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
+                    className="w-full rounded-[12px] px-3 py-2.5 h-10 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2] text-[#222]
+                      placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors"
                   />
                   <button
                     type="button"
@@ -319,8 +319,8 @@ export default function NotificationsPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={120}
                 placeholder="e.g. Happy New Year 🎉"
-                className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-[12px] md:text-[14px] text-[#222]
-                  placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white"
+                className="rounded-[12px] px-3 py-2.5 h-10 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2] text-[#222]
+                  placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors"
               />
             </div>
 
@@ -334,8 +334,8 @@ export default function NotificationsPage() {
                 maxLength={500}
                 rows={3}
                 placeholder="Optional body text…"
-                className="border border-[#E6E6E6] rounded-xl px-4 py-2.5 text-[12px] md:text-[14px] text-[#222]
-                  placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors bg-white resize-none"
+                className="rounded-[12px] px-3 py-2.5 text-[14px] sm:text-[15px] md:text-[16px] bg-[#F2F2F2] border border-[#F2F2F2] text-[#222]
+                  placeholder:text-[#AAAAAA] outline-none focus:border-[#B31B38] transition-colors resize-none"
               />
             </div>
 

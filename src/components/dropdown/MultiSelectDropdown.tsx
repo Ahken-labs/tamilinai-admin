@@ -93,12 +93,12 @@ export default function MultiSelectDropdown({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`min-h-[40px] px-3 py-2 rounded-[10px] border bg-[#FAFAFA] outline-none
+        className={`min-h-[40px] px-3 py-2 rounded-[12px] border bg-[#F2F2F2] outline-none
           transition-colors cursor-pointer flex items-center gap-2 w-full
-          ${open ? "border-[#B31B38]" : "border-[#EBEBEB] hover:border-[#CCCCCC]"}`}
+          ${open ? "border-[#B31B38]" : "border-[#F2F2F2] hover:border-[#CCCCCC]"}`}
       >
         <span
-          className={`truncate flex-1 text-left text-[14px] ${
+          className={`truncate flex-1 text-left text-[14px] sm:text-[15px] md:text-[16px] ${
             triggerLabel ? "text-[#0A0A0A]" : "text-[#BBBBBB]"
           }`}
         >
