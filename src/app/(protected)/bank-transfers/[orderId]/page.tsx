@@ -172,23 +172,8 @@ function AdminReceiptUploadPopup({
         )}
 
         <div className="mt-4 flex gap-2.5">
-          {/* <button
-            type="button"
-            onClick={onClose}
-            disabled={uploading}
-            className="flex-1 py-2.5 rounded-xl border border-[#E0E0E0] text-[#222] text-[14px] font-medium hover:bg-[#F5F5F5] disabled:opacity-40 transition-colors"
-          >
-            Cancel
-          </button> */}
+
           <Button white className="flex-1" text="Cancel" onPress={onClose} disabled={uploading} />
-          {/* <button
-            type="button"
-            disabled={!selectedFile || uploading}
-            onClick={handleUpload}
-            className="flex-1 py-2.5 rounded-xl bg-[#B31B38] text-white text-[14px] font-semibold hover:bg-[#9A1730] disabled:opacity-40 transition-colors"
-          >
-            {uploading ? "Uploading…" : currentReceiptUrl ? "Replace receipt" : "Upload receipt"}
-          </button> */}
           <Button className="flex-1" text={uploading ? "Uploading…" : currentReceiptUrl ? "Replace receipt" : "Upload receipt"}
             onPress={handleUpload}
             disabled={!selectedFile || uploading}
@@ -208,7 +193,6 @@ function ConfirmPasswordDialog({
   title,
   subtitle,
   confirmLabel,
-  danger,
   submitting,
   onConfirm,
 }: {
@@ -261,12 +245,6 @@ function ConfirmPasswordDialog({
             className="flex-1 rounded-[12px] py-2.5 text-[14px] font-medium border border-[#E0E0E0] text-[#222] hover:bg-[#F5F5F5] transition-colors disabled:opacity-40">
             Cancel
           </button>
-          {/* <button type="button" onClick={handleConfirm} disabled={submitting || !password.trim()}
-            className={`flex-1 rounded-[12px] py-2.5 text-[14px] font-medium transition-colors disabled:opacity-40 ${danger ? "bg-[#B31B38] text-white hover:bg-[#9A1730]" : "bg-[#2E7D32] text-white hover:bg-[#1B5E20]"
-              }`}>
-            {submitting ? "Processing…" : confirmLabel}
-          </button> */}
-
           <Button className="flex-1" text={submitting ? "Processing…" : confirmLabel}
             onPress={handleConfirm} disabled={submitting || !password.trim()}
           />
