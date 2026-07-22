@@ -183,7 +183,7 @@ export default function BusinessDetailPage() {
       <button
         type="button"
         onClick={() => router.back()}
-        className="mb-5 flex items-center gap-2 text-[14px] text-[#555] hover:text-[#B31B38] transition-colors group"
+        className="cursor-pointer mb-5 flex items-center gap-2 text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222] group"
       >
         <span className="w-8 h-8 flex items-center justify-center rounded-xl border border-[#E6E6E6] group-hover:border-[#B31B38] transition-colors">
           <BackArrowIcon className="w-4 h-4" />
@@ -219,7 +219,7 @@ export default function BusinessDetailPage() {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-[18px] sm:text-[20px] font-semibold text-[#0A0A0A]">{biz.businessName}</h1>
+            <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222]">{biz.businessName}</h1>
             {statusBadge}
           </div>
           <p className="text-[13px] text-[#B31B38] mt-0.5">@{biz.username} · {biz.category}{biz.specify ? ` (${biz.specify})` : ""}</p>

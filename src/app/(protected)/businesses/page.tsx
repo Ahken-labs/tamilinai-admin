@@ -70,7 +70,7 @@ export default function BusinessesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">Businesses</h1>
+        <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222]">Businesses</h1>
       </div>
 
       <TabBar

@@ -190,6 +190,7 @@ export async function reviewAdminRefundRequest(
 export type AdminPromoCode = {
   id: string;
   code: string;
+  scope: string;
   discountLkr: number;
   discountGbpCents: number;
   isActive: boolean;
@@ -205,6 +206,7 @@ export async function listAdminPromoCodes(): Promise<{ promoCodes: AdminPromoCod
 
 export async function createAdminPromoCode(data: {
   code: string;
+  scope?: string;
   discountLkr: number;
   discountGbpCents: number;
   maxUses?: number;
@@ -622,4 +624,78 @@ export async function reviewAdminBusiness(
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+}
+
+// ─── Business Boost Transfers ──────────────────────────────────────────────────
+
+export type AdminBoostOrder = {
+  id: string;
+  amountLkr: number;
+  promoCode: string | null;
+  discountLkr: number;
+  receiptKey: string | null;
+  receiptPresignedUrl: string | null;
+  status: "pending" | "approved" | "rejected";
+  adminNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  businessName: string | null;
+  username: string | null;
+  phone?: string | null;
+  countryCode?: string;
+};
+
+export async function listBoostOrders(
+  status = "pending",
+  page = 1,
+): Promise<{ orders: AdminBoostOrder[]; page: number; hasMore: boolean }> {
+  return apiFetch(`/business-transfers?status=${status}&page=${page}`);
+}
+
+export async function getBoostOrder(orderId: string): Promise<AdminBoostOrder> {
+  return apiFetch(`/business-transfers/${orderId}`);
+}
+
+export async function reviewBoostOrder(
+  orderId: string,
+  payload: { action: "approve" | "reject"; adminNote?: string; adminPassword: string },
+): Promise<{ success: boolean; message: string; whatsappPhone?: string }> {
+  return apiFetch(`/business-transfers/${orderId}/review`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function downloadBoostReceiptBlob(orderId: string): Promise<{ blob: Blob; filename: string }> {
+  const token = getToken();
+  const res = await fetch(`${BASE}/api/admin/business-transfers/${orderId}/download-receipt`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error("Failed to download receipt");
+  const cd = res.headers.get("Content-Disposition") ?? "";
+  const match = cd.match(/filename="([^"]+)"/);
+  const shortId = orderId.slice(0, 8).toUpperCase();
+  const date = new Date().toISOString().slice(0, 10);
+  const filename = match?.[1] ?? `${shortId}-boost-receipt-${date}`;
+  const blob = await res.blob();
+  return { blob, filename };
+}
+
+export async function adminUploadBoostReceipt(
+  orderId: string,
+  file: File,
+): Promise<{ success: boolean; receiptPresignedUrl: string }> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
+  const formData = new FormData();
+  formData.append("receipt", file);
+  const res = await fetch(`${BASE}/api/admin/business-transfers/${orderId}/upload-receipt`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error ?? "Upload failed");
+  }
+  return res.json();
 }

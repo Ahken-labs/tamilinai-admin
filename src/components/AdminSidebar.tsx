@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   InaiMarkIcon,
   PhotoIcon,
@@ -14,31 +14,76 @@ import {
   DashboardIcon,
   SeedIcon,
   BuildingIcon,
+  ChevronIcon,
+  PromoIcon,
+  RefundIcon,
+  SubscriptionIcon,
+  BankTransferIcon,
 } from "@/assets/Icons";
 import Popup from "./layout/Popup";
 import { clearUsersCache } from "@/app/(protected)/users/page";
 import { clearPhotosCache } from "@/app/(protected)/photos/page";
 
-const NAV = [
+type NavItem = { label: string; href: string; Icon: React.FC<{ className?: string }> };
+type NavGroup = { label: string; Icon: React.FC<{ className?: string }>; children: NavItem[] };
+type NavEntry = NavItem | NavGroup;
+
+function isGroup(entry: NavEntry): entry is NavGroup {
+  return "children" in entry;
+}
+
+const NAV: NavEntry[] = [
   { label: "Dashboard", href: "/dashboard", Icon: DashboardIcon },
-  { label: "Users", href: "/users", Icon: UsersIcon },
-  { label: "Photos", href: "/photos", Icon: PhotoIcon },
-  { label: "Billing", href: "/billing", Icon: BillingIcon },
-  { label: "Bank Transfers", href: "/bank-transfers", Icon: BillingIcon },
-  { label: "Businesses", href: "/businesses", Icon: BuildingIcon },
+  {
+    label: "Users",
+    Icon: UsersIcon,
+    children: [
+      { label: "Members",       href: "/users",          Icon: UsersIcon },
+      { label: "Photos",        href: "/photos",         Icon: PhotoIcon },
+      { label: "Bank Transfers", href: "/bank-transfers", Icon: BankTransferIcon },
+    ],
+  },
+  {
+    label: "Billing",
+    Icon: BillingIcon,
+    children: [
+      { label: "Subscriptions", href: "/billing?tab=subscriptions", Icon: SubscriptionIcon },
+      { label: "Refund", href: "/billing?tab=refunds",        Icon: RefundIcon },
+      { label: "Promo Codes",    href: "/billing?tab=promo",           Icon: PromoIcon },
+    ],
+  },
+  {
+    label: "Businesses",
+    Icon: BuildingIcon,
+    children: [
+      { label: "Vendor Listings", href: "/businesses",         Icon: BuildingIcon },
+      { label: "Bank Transfers",  href: "/business-transfers", Icon: BankTransferIcon },
+    ],
+  },
   { label: "Notifications", href: "/notifications", Icon: BellIcon },
   // remove this once website gets real profile traffic
   { label: "Seeded", href: "/seeded", Icon: SeedIcon },
   // end-removal
-] as const;
+];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
+
+  function isChildActive(href: string) {
+    if (href.includes("?")) {
+      const [p, q] = href.split("?");
+      const params = new URLSearchParams(q);
+      return pathname === p && params.get("tab") === searchParams.get("tab");
+    }
+    return pathname.startsWith(href);
+  }
 
   const [adminName, setAdminName] = useState("");
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -89,21 +134,61 @@ export default function AdminSidebar() {
         <p className="text-[12px] font-semibold tracking-[1.8px] uppercase text-[#CCCCCC] px-3 mb-3">
           Management
         </p>
-        {NAV.map(({ label, href, Icon }) => {
+        {NAV.map((entry) => {
+          if (isGroup(entry)) {
+            const { label, Icon, children } = entry;
+            const anyChildActive = children.some(c => isChildActive(c.href));
+            const groupOpen = openGroups.has(label) || anyChildActive;
+            return (
+              <div key={label}>
+                <button
+                  type="button"
+                  onClick={() => setOpenGroups(prev => {
+                    const next = new Set(prev);
+                    if (next.has(label)) next.delete(label); else next.add(label);
+                    return next;
+                  })}
+                  className={`transition-transform duration-300 ease-out hover:scale-[1.02] w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2.5 rounded-[10px] text-[14px] md:text-[16px] font-medium
+                    transition-colors duration-150 select-none cursor-pointer
+                    ${anyChildActive ? "text-[#B31B38]" : "text-[#555555] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]"}`}
+                >
+                  <Icon className={`w-4 md:w-4.5 h-4 md:h-4.5 shrink-0 ${anyChildActive ? "text-[#B31B38]" : "text-[#222222]"}`} />
+                  <span className="flex-1 text-left">{label}</span>
+                  <ChevronIcon open={groupOpen} className="w-3.5 h-3.5 shrink-0 transition-transform duration-200" stroke={anyChildActive ? "#B31B38" : "#999"} />
+                </button>
+                {groupOpen && (
+                  <div className="ml-3 pl-3 border-l border-[#E8E8E8] mt-0.5 space-y-0.5">
+                    {children.map(({ label: cLabel, href, Icon: CIcon }) => {
+                      const active = isChildActive(href);
+                      return (
+                        <Link
+                          key={href}
+                          href={href}
+                          className={`transition-transform duration-300 ease-out hover:scale-[1.02] flex items-center gap-2 px-2 py-2 rounded-[8px] text-[13px] md:text-[14px] font-medium
+                            transition-colors duration-150 select-none
+                            ${active ? "bg-[#FFF0F3] text-[#B31B38]" : "text-[#555555] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]"}`}
+                        >
+                          <CIcon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-[#B31B38]" : "text-[#222222]"}`} />
+                          {cLabel}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          const { label, href, Icon } = entry;
           const active = pathname.startsWith(href);
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2.5 rounded-[10px] text-[14px] md:text-[16px] font-medium
+              className={`transition-transform duration-300 ease-out hover:scale-[1.02] flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2.5 rounded-[10px] text-[14px] md:text-[16px] font-medium
                 transition-colors duration-150 select-none
-                ${active
-                  ? "bg-[#FFF0F3] text-[#B31B38]"
-                  : "text-[#555555] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]"
-                }`}
+                ${active ? "bg-[#FFF0F3] text-[#B31B38]" : "text-[#555555] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]"}`}
             >
-              <Icon className={`w-4 md:w-4.5 h-4 md:h-4.5 shrink-0 transition-colors
-                ${active ? "text-[#B31B38]" : "text-[#222222]"}`} />
+              <Icon className={`w-4 md:w-4.5 h-4 md:h-4.5 shrink-0 ${active ? "text-[#B31B38]" : "text-[#222222]"}`} />
               {label}
             </Link>
           );
@@ -124,7 +209,7 @@ export default function AdminSidebar() {
         <button
           type="button"
           onClick={() => setLogoutOpen(true)}
-          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-[14px] md:text-[16px] font-medium
+          className="transition-transform duration-300 ease-out hover:scale-[1.02] w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-[14px] md:text-[16px] font-medium
             text-[#B31B38] hover:text-[#B31B38] hover:bg-[#FFF0F3]
             transition-colors duration-150 cursor-pointer"
         >
@@ -138,7 +223,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* ── Desktop sidebar — sticky, full height ── */}
-      <aside className="hidden sm:flex w-[180px] md:w-[210px] shrink-0 flex-col h-screen sticky top-0
+      <aside className="hidden sm:flex w-[180px] md:w-[220px] shrink-0 flex-col h-screen sticky top-0
         border-r border-[#EBEBEB] bg-white">
         {SidebarBody}
       </aside>
@@ -149,7 +234,7 @@ export default function AdminSidebar() {
         <button
           type="button"
           onClick={() => setMobileOpen(v => !v)}
-          className="w-8 h-8 flex items-center justify-center rounded-[8px]
+          className="transition-transform duration-300 ease-out hover:scale-[1.06] w-8 h-8 flex items-center justify-center rounded-[8px]
             text-[#555555] hover:bg-[#F5F5F5] transition-colors cursor-pointer shrink-0"
           aria-label="Open menu"
         >

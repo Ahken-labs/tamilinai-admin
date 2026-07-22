@@ -276,11 +276,11 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<void> {
 
   if (data.discountCents > 0) {
     const discLabel = data.promoCode
-      ? `Promo code discount  —  ${data.promoCode}`
+      ? `Promo code discount - ${data.promoCode}`
       : "Promo code discount";
     normal(9.5, [46, 125, 50]);
     doc.text(discLabel, M + CELL_P, y + 6.5);
-    doc.text(`− ${fmtAmt(data.discountCents, data.currency)}`, M + W - CELL_P, y + 6.5, { align: "right" });
+    doc.text(`- ${fmtAmt(data.discountCents, data.currency)}`, M + W - CELL_P, y + 6.5, { align: "right" });
 
     doc.setDrawColor(215, 215, 215);
     doc.setLineWidth(0.35);
@@ -337,5 +337,231 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<void> {
   doc.text("Admin-generated document",                       M + W, footerY + 13,  { align: "right" });
 
   const filename = `${data.userDisplayId ?? shortId}-invoice-${new Date(data.createdAt).toISOString().slice(0, 10)}.pdf`;
+  doc.save(filename);
+}
+
+// ─── Business Boost Invoice ───────────────────────────────────────────────────
+
+export type BoostInvoiceData = {
+  id: string;
+  businessName: string | null;
+  username: string | null;
+  phone: string | null;
+  countryCode: string | null;
+  amountLkr: number;
+  discountLkr: number;
+  promoCode: string | null;
+  status: string;
+  createdAt: string;
+  reviewedAt?: string | null;
+  adminNote?: string | null;
+};
+
+export async function generateBoostInvoicePDF(data: BoostInvoiceData): Promise<void> {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+  const M   = 20;
+  const PW  = 210;
+  const W   = PW - M * 2;
+  const net = data.amountLkr - data.discountLkr;
+
+  type RGB = [number, number, number];
+  const RED:  RGB = [179, 27, 56];
+  const DARK: RGB = [34, 34, 34];
+  const SUB:  RGB = [101, 101, 101];
+  const RULE: RGB = [210, 210, 210];
+
+  const shortId = data.id.slice(0, 8).toUpperCase();
+
+  const logoDataUrl = await svgToPngDataUrl(INAI_SVG, 44);
+  const brand = renderBrandText("இணை.lk", 20, "#B31B38");
+
+  const bold   = (sz: number, c: RGB = DARK) => { doc.setFont("helvetica", "bold");   doc.setFontSize(sz); doc.setTextColor(...c); };
+  const normal = (sz: number, c: RGB = DARK) => { doc.setFont("helvetica", "normal"); doc.setFontSize(sz); doc.setTextColor(...c); };
+  const hRule  = (yy: number, color: RGB = RULE, lw = 0.4) => {
+    doc.setDrawColor(...color); doc.setLineWidth(lw); doc.line(M, yy, M + W, yy);
+  };
+
+  const LOGO_Y = 12;
+  const LOGO_S = 14;
+  const BX     = M + 18;
+
+  if (logoDataUrl) {
+    doc.addImage(logoDataUrl, "PNG", M, LOGO_Y, LOGO_S, LOGO_S);
+    doc.link(M, LOGO_Y, LOGO_S, LOGO_S, { url: "https://inai.lk/" });
+  }
+
+  const BRAND_H = 7;
+  const BRAND_W = brand.widthMm > 0 ? (brand.widthMm / brand.heightMm) * BRAND_H : 28;
+  const BRAND_Y = LOGO_Y + (LOGO_S - BRAND_H) / 2;
+  if (brand.dataUrl) doc.addImage(brand.dataUrl, "PNG", BX, BRAND_Y, BRAND_W, BRAND_H);
+
+  const BELOW_LOGO = LOGO_Y + LOGO_S + 2;
+  normal(8.5, SUB);
+  doc.text("Inai Business  ·  by Ahkennexus (Pvt) Ltd", BX, BELOW_LOGO);
+  doc.text("Email       :  support@inai.lk",             BX, BELOW_LOGO + 6);
+  doc.text("WhatsApp :  +94 77 075 0760",                BX, BELOW_LOGO + 11.5);
+  doc.text("Website    :  https://inai.lk/",             BX, BELOW_LOGO + 17);
+
+  bold(17, DARK);
+  doc.text("INVOICE", M + W, LOGO_Y + 6, { align: "right" });
+  normal(8.5, SUB);
+  doc.text(`Ref:  #${shortId}`,                     M + W, BELOW_LOGO,        { align: "right" });
+  doc.text(`Date:  ${fmtDT(data.createdAt)}`,        M + W, BELOW_LOGO + 6,   { align: "right" });
+  if (data.reviewedAt) {
+    doc.text(`Reviewed:  ${fmtDT(data.reviewedAt)}`, M + W, BELOW_LOGO + 11.5, { align: "right" });
+  }
+
+  doc.setDrawColor(...RED);
+  doc.setLineWidth(0.7);
+  doc.line(M, BELOW_LOGO + 22, M + W, BELOW_LOGO + 22);
+
+  let lY = 59;
+  let rY = 59;
+  const midX = M + W / 2 + 5;
+
+  bold(7.5, SUB);
+  doc.text("BILL TO", M, lY);
+  lY += 6;
+
+  bold(12, DARK);
+  doc.text(data.businessName ?? "—", M, lY);
+  lY += 6.5;
+
+  normal(9, SUB);
+  const bizRows: [string, string | null | undefined][] = [
+    ["Username", data.username ? `@${data.username}` : null],
+    ["Phone    ", data.phone ?? null],
+  ];
+  bizRows.forEach(([lbl, val]) => {
+    if (!val) return;
+    normal(8.5, SUB);
+    doc.text(`${lbl}:  `, M, lY);
+    normal(8.5, DARK);
+    doc.text(val, M + 22, lY);
+    lY += 5.5;
+  });
+
+  bold(7.5, SUB);
+  doc.text("INVOICE DETAILS", M + W, rY, { align: "right" });
+  rY += 6;
+
+  const statusColor: RGB =
+    data.status === "approved" ? [46, 125, 50] :
+    data.status === "rejected" ? RED :
+    [200, 100, 0];
+
+  const statusText = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+
+  const detRows: Array<{ lbl: string; val: string; color?: RGB }> = [
+    { lbl: "Invoice #",    val: shortId },
+    { lbl: "Invoice Date", val: fmtDate(data.createdAt) },
+    { lbl: "Payment",      val: "Bank Transfer" },
+    { lbl: "Status",       val: statusText, color: statusColor },
+  ];
+
+  detRows.forEach(({ lbl, val, color }) => {
+    normal(8.5, SUB);
+    doc.text(lbl, midX, rY);
+    bold(8.5, color ?? DARK);
+    doc.text(val, M + W, rY, { align: "right" });
+    rY += 5.8;
+  });
+
+  let y = Math.max(lY, rY) + 6;
+  hRule(y, [220, 220, 220], 0.5);
+  y += 9;
+
+  const AMT_W  = 46;
+  const divX   = M + W - AMT_W;
+  const CELL_P = 5;
+  const HDR_H  = 9;
+  const PLAN_H = 16;
+  const DISC_H = data.discountLkr > 0 ? 10 : 0;
+  const TOT_H  = 13;
+  const tableH = HDR_H + PLAN_H + DISC_H + TOT_H;
+
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.5);
+  doc.rect(M, y, W, tableH, "D");
+  doc.setLineWidth(0.4);
+  doc.line(divX, y, divX, y + tableH);
+
+  doc.setFillColor(243, 243, 243);
+  doc.rect(M + 0.5, y + 0.5, W - 1, HDR_H - 0.5, "F");
+  bold(8, [100, 100, 100]);
+  doc.text("DESCRIPTION", M + CELL_P,     y + 6);
+  doc.text("AMOUNT",      M + W - CELL_P, y + 6, { align: "right" });
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.4);
+  doc.line(M, y + HDR_H, M + W, y + HDR_H);
+  y += HDR_H;
+
+  bold(10.5, DARK);
+  doc.text("Business Boost", M + CELL_P, y + 6.5);
+  normal(8.5, SUB);
+  doc.text("1 month  ·  Bank Transfer", M + CELL_P, y + 12);
+  normal(10.5, DARK);
+  doc.text(`Rs ${Math.round(data.amountLkr).toLocaleString("en-LK")}`, M + W - CELL_P, y + 8, { align: "right" });
+
+  doc.setDrawColor(215, 215, 215);
+  doc.setLineWidth(0.35);
+  doc.line(M, y + PLAN_H, M + W, y + PLAN_H);
+  y += PLAN_H;
+
+  if (data.discountLkr > 0) {
+    const discLabel = data.promoCode ? `Promo code discount - ${data.promoCode}` : "Discount";
+    normal(9.5, [46, 125, 50]);
+    doc.text(discLabel, M + CELL_P, y + 6.5);
+    doc.text(`- Rs ${Math.round(data.discountLkr).toLocaleString("en-LK")}`, M + W - CELL_P, y + 6.5, { align: "right" });
+    doc.setDrawColor(215, 215, 215);
+    doc.setLineWidth(0.35);
+    doc.line(M, y + DISC_H, M + W, y + DISC_H);
+    y += DISC_H;
+  }
+
+  doc.setFillColor(253, 250, 251);
+  doc.rect(M + 0.5, y + 0.5, W - 1, TOT_H - 0.5, "F");
+  bold(11, DARK);
+  doc.text("TOTAL AMOUNT DUE", M + CELL_P, y + 8.5);
+  bold(12, RED);
+  doc.text(`Rs ${Math.round(net).toLocaleString("en-LK")}`, M + W - CELL_P, y + 8.5, { align: "right" });
+  y += TOT_H + 10;
+
+  normal(9, SUB);
+  doc.text("Payment method:", M, y);
+  bold(9, DARK);
+  doc.text("Bank Transfer", M + 36, y);
+  y += 6;
+  normal(9, SUB);
+  doc.text("Order status:", M, y);
+  bold(9, statusColor);
+  doc.text(statusText, M + 36, y);
+  y += 10;
+
+  if (data.adminNote) {
+    hRule(y, [220, 220, 220]);
+    y += 6;
+    bold(7.5, [150, 110, 0]);
+    doc.text("NOTE", M, y);
+    y += 5;
+    normal(9, [60, 60, 60]);
+    const noteLines = doc.splitTextToSize(data.adminNote, W);
+    doc.text(noteLines, M, y);
+  }
+
+  const footerY = 268;
+  hRule(footerY, [200, 200, 200], 0.5);
+  bold(8.5, RED);
+  doc.text("Inai Business", M, footerY + 7);
+  normal(8, SUB);
+  doc.text("by Ahkennexus (Pvt) Ltd", M, footerY + 13);
+  doc.text("support@inai.lk  ·  WhatsApp +94 77 075 0760  ·  inai.lk", M, footerY + 18.5);
+  normal(7.5, [160, 160, 160]);
+  doc.text(`Generated  ${fmtDT(new Date().toISOString())}`, M + W, footerY + 7,   { align: "right" });
+  doc.text("Admin-generated document",                       M + W, footerY + 13, { align: "right" });
+
+  const filename = `${data.username ?? shortId}-boost-invoice-${new Date(data.createdAt).toISOString().slice(0, 10)}.pdf`;
   doc.save(filename);
 }

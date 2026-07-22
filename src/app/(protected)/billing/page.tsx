@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   listAdminSubscriptions, listAdminRefundRequests, reviewAdminRefundRequest,
   listAdminPromoCodes, createAdminPromoCode, updateAdminPromoCode, deleteAdminPromoCode,
@@ -8,7 +9,6 @@ import {
 import type { AdminSubscription, AdminRefundRequest, AdminPromoCode } from "../../../lib/api";
 import Popup from "@/components/layout/Popup";
 import TabBar from "@/components/layout/TabBar";
-import SubTabBar from "@/components/layout/SubTabBar";
 import { useToast } from "@/components/ui/Toast";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { exportToExcel } from "@/lib/exportExcel";
@@ -248,7 +248,7 @@ function RefundsTab({ onReady }: { onReady?: (fn: () => void) => void }) {
 
   return (
     <>
-      <SubTabBar
+      <TabBar
         tabs={[
           { key: "pending",  label: "Pending" },
           { key: "approved", label: "Approved" },
@@ -396,7 +396,7 @@ function PromoCodesTab() {
   const [acting, setActing]         = useState<string | null>(null);
   const [error, setError]           = useState("");
   const [showForm, setShowForm]     = useState(false);
-  const [form, setForm]             = useState({ code: "", discountLkr: "", discountGbp: "", maxUses: "", expiresAt: "" });
+  const [form, setForm]             = useState({ code: "", scope: "user", discountLkr: "", discountGbp: "", maxUses: "", expiresAt: "" });
   const [formError, setFormError]   = useState("");
   const [creating, setCreating]     = useState(false);
   const [pendingDelete, setPending] = useState<PendingDelete | null>(null);
@@ -462,13 +462,14 @@ function PromoCodesTab() {
     try {
       const res = await createAdminPromoCode({
         code,
+        scope: form.scope,
         discountLkr,
         discountGbpCents,
         maxUses:   form.maxUses ? parseInt(form.maxUses, 10) : undefined,
         expiresAt: form.expiresAt || undefined,
       });
       setCodes((prev) => [res.promoCode, ...prev]);
-      setForm({ code: "", discountLkr: "", discountGbp: "", maxUses: "", expiresAt: "" });
+      setForm({ code: "", scope: "user", discountLkr: "", discountGbp: "", maxUses: "", expiresAt: "" });
       setShowForm(false);
       toast({ type: "success", title: "Promo code created", message: `${res.promoCode.code} is now active.` });
     } catch (err) {
@@ -505,6 +506,14 @@ function PromoCodesTab() {
                 onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
                 className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white
                   outline-none focus:border-[#B31B38] transition-colors" />
+            </div>
+            <div>
+              <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Scope</label>
+              <select value={form.scope} onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value }))}
+                className="w-full border border-[#E6E6E6] rounded-xl px-3 py-2.5 text-[12px] md:text-[14px] bg-white outline-none focus:border-[#B31B38] transition-colors">
+                <option value="user">User (matrimony subscriptions)</option>
+                <option value="business">Business (boost checkout)</option>
+              </select>
             </div>
             <div>
               <label className="text-[12px] md:text-[14px] font-medium text-[#222] mb-1 block">Discount LKR (Rs)</label>
@@ -559,6 +568,7 @@ function PromoCodesTab() {
             <thead>
               <tr className="border-b border-[#EEEEEE] bg-[#FAFAFA]">
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Code</th>
+                <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Scope</th>
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Discount LKR</th>
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Discount GBP</th>
                 <th className="text-left px-5 py-3 text-[14px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide">Uses</th>
@@ -570,13 +580,13 @@ function PromoCodesTab() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-[#F5F5F5] animate-pulse">
-                    {Array.from({ length: 6 }).map((__, j) => (
+                    {Array.from({ length: 7 }).map((__, j) => (
                       <td key={j} className="px-5 py-4"><div className="h-3 bg-[#F2F2F2] rounded w-20" /></td>
                     ))}
                   </tr>
                 ))
               ) : codes.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-16 text-center text-[12px] md:text-[14px] text-[#888]">No promo codes yet.</td></tr>
+                <tr><td colSpan={7} className="px-5 py-16 text-center text-[12px] md:text-[14px] text-[#888]">No promo codes yet.</td></tr>
               ) : codes.map((c) => (
                 <tr key={c.id} className="border-b border-[#F5F5F5] hover:bg-[#FAFAFA] transition-colors">
                   <td className="px-5 py-3.5">
@@ -588,6 +598,11 @@ function PromoCodesTab() {
                         </span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${c.scope === "business" ? "bg-[#EFF6FF] text-[#1D4ED8]" : "bg-[#F2F2F2] text-[#555]"}`}>
+                      {c.scope === "business" ? "Business" : "User"}
+                    </span>
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-[#444]">
                     Rs {c.discountLkr.toLocaleString()}
@@ -648,15 +663,18 @@ function PromoCodesTab() {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+const VALID_TABS: Tab[] = ["subscriptions", "refunds", "promo"];
+
 export default function BillingPage() {
-  const [tab, setTab] = useState<Tab>("subscriptions");
+  const searchParams = useSearchParams();
+  const initialTab = (VALID_TABS.includes(searchParams.get("tab") as Tab) ? searchParams.get("tab") : "subscriptions") as Tab;
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [exportFn, setExportFn] = useState<(() => void) | null>(null);
 
-  const BILLING_TABS = [
-    { key: "subscriptions", label: "Subscriptions", shortLabel: "Subs" },
-    { key: "refunds",       label: "Refund Requests", shortLabel: "Refunds" },
-    { key: "promo",         label: "Promo Codes", shortLabel: "Promo" },
-  ];
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab;
+    if (VALID_TABS.includes(t) && t !== tab) { setTab(t); setExportFn(null); }
+  }, [searchParams]);
 
   return (
     <div>
@@ -666,8 +684,6 @@ export default function BillingPage() {
           <Button white className="!py-2" text="Export Excel" iconLeft={<DownloadExcelIcon className="w-5 h-5" />} onPress={exportFn} />
         )}
       </div>
-
-      <TabBar tabs={BILLING_TABS} active={tab} onChange={(k) => { setTab(k as Tab); setExportFn(null); }} className="mb-6" />
 
       {tab === "subscriptions" && <SubscriptionsTab onReady={(fn) => setExportFn(() => fn)} />}
       {tab === "refunds"       && <RefundsTab onReady={(fn) => setExportFn(() => fn)} />}

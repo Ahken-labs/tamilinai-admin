@@ -85,7 +85,7 @@ export default function PhotosPage() {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">Photo Approval</h1>
+          <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222]">Photo Approval</h1>
           <p className="text-[13px] text-[#888] mt-0.5">
             {loading
               ? "Loading…"
@@ -95,14 +95,7 @@ export default function PhotosPage() {
           </p>
         </div>
         {!loading && (
-          <button
-            type="button"
-            onClick={fetchPhotos}
-            className="shrink-0 text-[13px] text-[#6B6B6B] hover:text-[#B31B38] border border-[#E6E6E6]
-              hover:border-[#B31B38] px-4 py-2 rounded-xl transition-colors touch-manipulation"
-          >
-            Refresh
-          </button>
+          <Button white className="!py-2" text="Refresh" onPress={fetchPhotos} />
         )}
       </div>
 

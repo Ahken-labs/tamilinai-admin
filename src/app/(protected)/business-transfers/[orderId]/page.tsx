@@ -4,25 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import {
-  getBankTransfer,
-  reviewBankTransfer,
-  adminUploadBankReceipt,
-  downloadBankReceiptBlob,
+  getBoostOrder,
+  reviewBoostOrder,
+  adminUploadBoostReceipt,
+  downloadBoostReceiptBlob,
 } from "@/lib/api";
-import type { AdminBankTransferOrder } from "@/lib/api";
+import type { AdminBoostOrder } from "@/lib/api";
 import { BackArrowIcon, DownloadIcon, ThreeDotsIcon, UploadIcon } from "@/assets/Icons";
 import { useToast } from "@/components/ui/Toast";
-import { generateInvoicePDF } from "@/lib/generateInvoicePDF";
 import Button from "@/components/layout/Button";
+import { generateBoostInvoicePDF } from "@/lib/generateInvoicePDF";
 
-// helpers 
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
-const PLAN_LABELS: Record<string, string> = { basic: "Basic", pro: "Pro", max: "Max" };
-
-function fmtAmount(cents: number, currency: string) {
-  const sym = currency.toLowerCase() === "lkr" ? "Rs" : "£";
-  const amt = cents / 100;
-  return `${sym} ${currency.toLowerCase() === "lkr" ? Math.round(amt).toLocaleString("en-LK") : amt.toFixed(2)}`;
+function fmtLkr(amount: number) {
+  return `Rs ${Math.round(amount).toLocaleString("en-LK")}`;
 }
 
 function fmtDate(iso: string | null | undefined) {
@@ -46,7 +42,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className="px-3 py-0.5 rounded-full bg-[#FFF8E1] text-[#E65100] text-[14px] font-semibold">Pending</span>;
 }
 
-// Receipt upload popup 
+// ── Receipt upload popup ───────────────────────────────────────────────────────
 
 function AdminReceiptUploadPopup({
   currentReceiptUrl,
@@ -70,7 +66,7 @@ function AdminReceiptUploadPopup({
     setUploading(true);
     setError("");
     try {
-      const res = await adminUploadBankReceipt(orderId, selectedFile);
+      const res = await adminUploadBoostReceipt(orderId, selectedFile);
       toast({ type: "success", title: "Receipt uploaded successfully" });
       onReplaced(res.receiptPresignedUrl);
       onClose();
@@ -87,7 +83,6 @@ function AdminReceiptUploadPopup({
       onClick={(e) => { if (e.target === e.currentTarget && !uploading) onClose(); }}
     >
       <div className="w-full sm:max-w-[520px] bg-white rounded-t-[20px] sm:rounded-[20px] px-5 sm:px-6 pt-5 sm:pt-6 pb-8 sm:pb-6">
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-[15px] md:text-[16px] font-semibold text-[#0A0A0A]">
             {currentReceiptUrl ? "Replace receipt" : "Upload receipt"}
@@ -105,7 +100,6 @@ function AdminReceiptUploadPopup({
           </button>
         </div>
 
-        {/* View current receipt */}
         {currentReceiptUrl && (
           <a
             href={currentReceiptUrl}
@@ -118,14 +112,13 @@ function AdminReceiptUploadPopup({
           </a>
         )}
 
-        {/* Upload box */}
         {!selectedFile ? (
           <div className="flex flex-col items-center justify-center rounded-[16px] border-2 border-dashed border-[#D8D8D8] bg-[#F2F2F2] px-4 py-7">
             <UploadIcon />
             <p className="mt-2.5 text-[14px] font-semibold text-[#222]">
               {currentReceiptUrl ? "Choose replacement file" : "Choose receipt file"}
             </p>
-            <p className="mt-1 text-[12px] text-[#888] text-center">PDF, PNG or JPG · max 20 MB</p>
+            <p className="mt-1 text-[12px] text-[#888] text-center">PDF, PNG or JPG · max 10 MB</p>
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
@@ -160,7 +153,7 @@ function AdminReceiptUploadPopup({
             <button
               type="button"
               onClick={() => setSelectedFile(null)}
-              className="cursor-pointer text-[#888] hover:text-[#B31B38] text-[12px] font-medium shrink-0 transition-colors"
+              className="text-[#888] hover:text-[#B31B38] text-[12px] font-medium shrink-0 transition-colors"
             >
               Remove
             </button>
@@ -172,23 +165,16 @@ function AdminReceiptUploadPopup({
         )}
 
         <div className="mt-4 flex gap-2.5">
-          {/* <button
-            type="button"
-            onClick={onClose}
-            disabled={uploading}
-            className="flex-1 py-2.5 rounded-xl border border-[#E0E0E0] text-[#222] text-[14px] font-medium hover:bg-[#F5F5F5] disabled:opacity-40 transition-colors"
-          >
+          {/* <button type="button" onClick={onClose} disabled={uploading}
+            className="flex-1 py-2.5 rounded-xl border border-[#E0E0E0] text-[#222] text-[14px] font-medium hover:bg-[#F5F5F5] disabled:opacity-40 transition-colors">
             Cancel
-          </button> */}
-          <Button white className="flex-1" text="Cancel" onPress={onClose} disabled={uploading} />
-          {/* <button
-            type="button"
-            disabled={!selectedFile || uploading}
-            onClick={handleUpload}
-            className="flex-1 py-2.5 rounded-xl bg-[#B31B38] text-white text-[14px] font-semibold hover:bg-[#9A1730] disabled:opacity-40 transition-colors"
-          >
+          </button>
+          <button type="button" disabled={!selectedFile || uploading} onClick={handleUpload}
+            className="flex-1 py-2.5 rounded-xl bg-[#B31B38] text-white text-[14px] font-semibold hover:bg-[#9A1730] disabled:opacity-40 transition-colors">
             {uploading ? "Uploading…" : currentReceiptUrl ? "Replace receipt" : "Upload receipt"}
           </button> */}
+
+          <Button white className="flex-1" text="Cancel" onPress={onClose} disabled={uploading} />
           <Button className="flex-1" text={uploading ? "Uploading…" : currentReceiptUrl ? "Replace receipt" : "Upload receipt"}
             onPress={handleUpload}
             disabled={!selectedFile || uploading}
@@ -200,25 +186,13 @@ function AdminReceiptUploadPopup({
   );
 }
 
-// ─── Confirm dialog with password ─────────────────────────────────────────────
+// ── Confirm password dialog ────────────────────────────────────────────────────
 
 function ConfirmPasswordDialog({
-  open,
-  onClose,
-  title,
-  subtitle,
-  confirmLabel,
-  danger,
-  submitting,
-  onConfirm,
+  open, onClose, title, subtitle, confirmLabel, danger, submitting, onConfirm,
 }: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  subtitle: string;
-  confirmLabel: string;
-  danger?: boolean;
-  submitting?: boolean;
+  open: boolean; onClose: () => void; title: string; subtitle: string;
+  confirmLabel: string; danger?: boolean; submitting?: boolean;
   onConfirm: (password: string) => void;
 }) {
   const [password, setPassword] = useState("");
@@ -240,7 +214,7 @@ function ConfirmPasswordDialog({
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-[340px] rounded-[20px] bg-white p-6 shadow-[0_16px_60px_rgba(0,0,0,0.18)]">
+      <div className="relative z-10 w-full max-w-[400px] rounded-[20px] bg-white p-6 shadow-[0_16px_60px_rgba(0,0,0,0.18)]">
         <p className="text-[15px] font-semibold text-[#0A0A0A] leading-snug">{title}</p>
         <p className="mt-1.5 text-[13px] text-[#6B6B6B] leading-[1.6]">{subtitle}</p>
         <div className="mt-4 space-y-1">
@@ -257,16 +231,11 @@ function ConfirmPasswordDialog({
           {error && <p className="text-[11px] text-[#B31B38]">{error}</p>}
         </div>
         <div className="mt-5 flex gap-3">
-          <button type="button" onClick={onClose} disabled={submitting}
-            className="flex-1 rounded-[12px] py-2.5 text-[14px] font-medium border border-[#E0E0E0] text-[#222] hover:bg-[#F5F5F5] transition-colors disabled:opacity-40">
-            Cancel
-          </button>
+          <Button className="flex-1" disabled={submitting} onPress={onClose} white text="Cancel" />
           {/* <button type="button" onClick={handleConfirm} disabled={submitting || !password.trim()}
-            className={`flex-1 rounded-[12px] py-2.5 text-[14px] font-medium transition-colors disabled:opacity-40 ${danger ? "bg-[#B31B38] text-white hover:bg-[#9A1730]" : "bg-[#2E7D32] text-white hover:bg-[#1B5E20]"
-              }`}>
+            className={`flex-1 rounded-[12px] py-2.5 text-[14px] font-medium transition-colors disabled:bg-[#525252] ${danger ? "bg-[#B31B38] text-white hover:bg-[#9A1730]" : "bg-[#2E7D32] text-white hover:bg-[#1B5E20]"}`}>
             {submitting ? "Processing…" : confirmLabel}
           </button> */}
-
           <Button className="flex-1" text={submitting ? "Processing…" : confirmLabel}
             onPress={handleConfirm} disabled={submitting || !password.trim()}
           />
@@ -276,101 +245,31 @@ function ConfirmPasswordDialog({
   );
 }
 
+// ── ReviewPanel ────────────────────────────────────────────────────────────────
 
-// ─── Plan dropdown ────────────────────────────────────────────────────────────
-
-function PlanDropdown({ value, onChange, disabled }: {
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onMouseDown(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onMouseDown);
-    return () => document.removeEventListener("mousedown", onMouseDown);
-  }, [open]);
-
-  const options = [
-    { value: "basic", label: "Elite Basic - 3 months" },
-    { value: "pro", label: "Elite Pro - 6 months" },
-    { value: "max", label: "Elite Max - 10 months" },
-  ];
-
-  return (
-    <div ref={ref} className="relative w-full">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((v) => !v)}
-        className={`flex w-full items-center justify-between gap-2 px-3 py-2 rounded-xl border text-[12px] sm:text-[13px] md:text-[14px] font-medium transition-colors disabled:opacity-40
-          ${open ? "border-[#B31B38] bg-white text-[#0A0A0A]" : "border-[#F2F2F2] bg-[#F2F2F2] text-[#656565] hover:border-[#CCCCCC]"}`}
-      >
-        <span>{options.find((o) => o.value === value)?.label ?? "Elite Basic - 3 months"}</span>
-        <svg viewBox="0 0 10 10" fill="none" className={`w-3 md:w-4 h-3 md:h-4 text-[#222222] transition-transform shrink-0 ${open ? "rotate-180" : ""}`}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+3px)] z-50 rounded-[10px] border border-[#EBEBEB] bg-white shadow-[0_4px_16px_rgba(0,0,0,0.10)]">
-          {options.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => { onChange(o.value); setOpen(false); }}
-              className={`flex w-full items-center px-3 py-2 text-[12px] sm:text-[13px] md:text-[14px] text-left transition-colors
-                first:rounded-t-[10px] last:rounded-b-[10px]
-                ${value === o.value ? "bg-[#FFF0F3] text-[#B31B38] font-semibold" : "text-[#222] hover:bg-[#F5F5F5]"}`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── ReviewPanel ──────────────────────────────────────────────────────────────
-
-type ReviewPanelProps = { order: AdminBankTransferOrder; onDone: (action: "approve" | "reject") => void };
-
-function ReviewPanel({ order, onDone }: ReviewPanelProps) {
+function ReviewPanel({ order, onDone }: { order: AdminBoostOrder; onDone: (action: "approve" | "reject") => void }) {
   const [action, setAction] = useState<"approve" | "reject">("approve");
-  const [newPlanKey, setNewPlanKey] = useState(order.planKey);
   const [adminNote, setAdminNote] = useState(order.adminNote ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [approved, setApproved] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState("");
   const { toast } = useToast();
 
-  const planChanged = newPlanKey !== order.planKey;
   const canOpenConfirm = action === "approve" || adminNote.trim().length > 0;
-
-  const whatsappPhone = (order.userPhone ?? "").replace(/\D/g, "");
-  const whatsappMsg = `Hi ${order.userName ?? ""},\n\nYour Inai.lk Elite ${PLAN_LABELS[newPlanKey] ?? newPlanKey} membership has been activated! Visit inai.lk/matches to start discovering your matches.\n\nWelcome to Elite!`;
 
   async function handleConfirm(password: string) {
     setError("");
     setSubmitting(true);
     try {
-      await reviewBankTransfer(order.id, {
-        action,
-        newPlanKey: action === "approve" && planChanged ? newPlanKey : undefined,
-        adminNote: adminNote.trim() || undefined,
-        adminPassword: password,
-      });
+      const res = await reviewBoostOrder(order.id, { action, adminNote: adminNote.trim() || undefined, adminPassword: password });
       setShowConfirm(false);
       if (action === "approve") {
+        setWhatsappPhone(res.whatsappPhone ?? "");
         setApproved(true);
       } else {
-        toast({ type: "success", title: "Transfer rejected. User notified." });
+        toast({ type: "success", title: "Transfer rejected." });
         onDone("reject");
       }
     } catch (err) {
@@ -382,18 +281,19 @@ function ReviewPanel({ order, onDone }: ReviewPanelProps) {
   }
 
   if (approved) {
+    const phone = whatsappPhone.replace(/\D/g, "");
+    const msg = `Hi ${order.businessName ?? ""},\n\nYour Business Boost on Inai has been activated! Your listing is now boosted.\n\nThank you for choosing Inai Business!`;
     return (
       <div className="bg-white rounded-2xl border border-[#EAEAEA] p-5 flex flex-col gap-4 items-center text-center">
         <div className="w-14 h-14 rounded-full bg-[#F0FDF4] flex items-center justify-center text-[26px] text-[#2E7D32]">✓</div>
         <div>
-          <p className="text-[15px] font-semibold text-[#0A0A0A]">Transfer approved</p>
-          <p className="text-[12px] text-[#888] mt-1">Elite activated for {order.userDisplayId}. User notified via app + email.</p>
+          <p className="text-[15px] font-semibold text-[#0A0A0A]">Boost approved</p>
+          <p className="text-[12px] text-[#888] mt-1">Business Boost activated for @{order.username}.</p>
         </div>
-        {whatsappPhone.length > 6 && (
-          <a href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(whatsappMsg)}`}
-            target="_blank" rel="noreferrer"
+        {phone.length > 6 && (
+          <a href={`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer"
             className="w-full py-2.5 rounded-xl bg-[#25D366] text-white text-[14px] font-bold text-center hover:bg-[#1ebe5d] transition-colors">
-            Send WhatsApp to {order.userName ?? order.userDisplayId} ↗
+            Send WhatsApp to {order.businessName ?? order.username} ↗
           </a>
         )}
         <button type="button" onClick={() => onDone("approve")}
@@ -427,32 +327,25 @@ function ReviewPanel({ order, onDone }: ReviewPanelProps) {
 
         <div className="flex gap-2">
           <button type="button" onClick={() => setAction("approve")}
-            className={`cursor-pointer flex-1 py-2 rounded-xl text-[14px] sm:text-[15px] md:text-[16px] font-semibold border transition-colors ${action === "approve" ? "bg-[#F0FDF4] border-[#2E7D32] text-[#2E7D32]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#2E7D32]"
-              }`}>Approve</button>
+            className={`cursor-pointer flex-1 py-2 rounded-xl text-[14px] sm:text-[15px] md:text-[16px] font-semibold border transition-colors ${action === "approve" ? "bg-[#F0FDF4] border-[#2E7D32] text-[#2E7D32]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#2E7D32]"}`}>
+            Approve
+          </button>
           <button type="button" onClick={() => setAction("reject")}
-            className={`cursor-pointer flex-1 py-2 rounded-xl text-[14px] sm:text-[15px] md:text-[16px] font-semibold border transition-colors ${action === "reject" ? "bg-[#FFF0F3] border-[#B31B38] text-[#B31B38]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#B31B38]"
-              }`}>Reject</button>
+            className={`cursor-pointer flex-1 py-2 rounded-xl text-[14px] sm:text-[15px] md:text-[16px] font-semibold border transition-colors ${action === "reject" ? "bg-[#FFF0F3] border-[#B31B38] text-[#B31B38]" : "bg-white border-[#E6E6E6] text-[#888] hover:border-[#B31B38]"}`}>
+            Reject
+          </button>
         </div>
-
-        {action === "approve" && (
-          <div className="space-y-1">
-            <label className="text-[12px] sm:text-[13px] md:text-[14px] text-[#888] font-medium">Grant plan</label>
-            <PlanDropdown value={newPlanKey} onChange={setNewPlanKey} disabled={submitting} />
-            {planChanged && <p className="text-[12px] sm:text-[13px] md:text-[14px] text-[#E65100] font-medium">Plan changed {order.planKey} → {newPlanKey}</p>}
-          </div>
-        )}
 
         <div className="space-y-1">
           <label className="text-[12px] sm:text-[13px] md:text-[14px] text-[#888] font-medium">
-            {action === "reject" ? "Rejection reason (required - shown to user)" : "Note (optional, internal)"}
+            {action === "reject" ? "Rejection reason (required — shown to business)" : "Note (optional, internal)"}
           </label>
           <textarea
             placeholder={action === "reject" ? "Enter reason for rejection…" : "Optional internal note…"}
             value={adminNote}
             onChange={(e) => setAdminNote(e.target.value)}
             rows={3}
-            className={`w-full border rounded-xl px-3 py-2 text-[14px] outline-none bg-white resize-none transition-colors ${action === "reject" && !adminNote.trim() ? "border-[#FFD5DF] focus:border-[#B31B38]" : "border-[#E6E6E6] focus:border-[#B31B38]"
-              }`}
+            className={`w-full border rounded-xl px-3 py-2 text-[14px] outline-none bg-white resize-none transition-colors ${action === "reject" && !adminNote.trim() ? "border-[#FFD5DF] focus:border-[#B31B38]" : "border-[#E6E6E6] focus:border-[#B31B38]"}`}
           />
           {action === "reject" && !adminNote.trim() && (
             <p className="text-[12px] md:text-[13px] text-[#B31B38]">Required before rejecting</p>
@@ -461,19 +354,17 @@ function ReviewPanel({ order, onDone }: ReviewPanelProps) {
 
         {error && <p className="text-[12px] md:text-[13px] text-[#B31B38] bg-[#FFF0F3] border border-[#FFD5DF] rounded-lg px-3 py-2">{error}</p>}
 
-        <Button onPress={() => setShowConfirm(true)} disabled={!canOpenConfirm || submitting}
-          text={action === "approve" ? "Approve transfer" : "Reject transfer"}
+        <Button onPress={() => setShowConfirm(true)} disabled={!canOpenConfirm || submitting} text={action === "approve" ? "Approve transfer" : "Reject transfer"}
         />
       </div>
 
       <ConfirmPasswordDialog
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
-        title={action === "approve" ? `Approve payment for ${order.userDisplayId}?` : `Reject payment for ${order.userDisplayId}?`}
+        title={action === "approve" ? `Approve boost for @${order.username}?` : `Reject boost for @${order.username}?`}
         subtitle={action === "approve"
-          ? `This will activate Elite ${PLAN_LABELS[newPlanKey] ?? newPlanKey} for ${order.userName ?? "this user"}. An email + in-app notification will be sent.`
-          : `Rejection reason will be shown to ${order.userName ?? "the user"} via in-app + email.`
-        }
+          ? `This will activate Business Boost for ${order.businessName ?? order.username}. They will be notified via WhatsApp.`
+          : `Rejection reason will be shown to ${order.businessName ?? order.username}.`}
         confirmLabel={action === "approve" ? "Yes, approve" : "Yes, reject"}
         danger={action === "reject"}
         submitting={submitting}
@@ -483,14 +374,14 @@ function ReviewPanel({ order, onDone }: ReviewPanelProps) {
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ── Main page ──────────────────────────────────────────────────────────────────
 
-export default function BankTransferDetailPage() {
+export default function BusinessTransferDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const router = useRouter();
   const { toast } = useToast();
 
-  const [order, setOrder] = useState<AdminBankTransferOrder | null>(null);
+  const [order, setOrder] = useState<AdminBoostOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [showReceiptPopup, setShowReceiptPopup] = useState(false);
@@ -501,11 +392,36 @@ export default function BankTransferDetailPage() {
   const receiptBlobCache = useRef<{ key: string; blob: Blob; filename: string } | null>(null);
 
   useEffect(() => {
-    getBankTransfer(orderId)
+    getBoostOrder(orderId)
       .then(setOrder)
       .catch((err) => setLoadError(err instanceof Error ? err.message : "Failed to load order"))
       .finally(() => setLoading(false));
   }, [orderId]);
+
+  async function handleGeneratePdf() {
+    if (!order) return;
+    setGeneratingPdf(true);
+    try {
+      await generateBoostInvoicePDF({
+        id: order.id,
+        businessName: order.businessName,
+        username: order.username,
+        phone: order.phone ?? null,
+        countryCode: order.countryCode ?? null,
+        amountLkr: order.amountLkr,
+        discountLkr: order.discountLkr,
+        promoCode: order.promoCode,
+        status: order.status,
+        createdAt: order.createdAt,
+        reviewedAt: order.reviewedAt,
+        adminNote: order.adminNote,
+      });
+    } catch {
+      toast({ type: "error", title: "Failed to generate PDF" });
+    } finally {
+      setGeneratingPdf(false);
+    }
+  }
 
   async function handleDownloadReceipt() {
     if (!order) return;
@@ -513,7 +429,7 @@ export default function BankTransferDetailPage() {
     try {
       const cacheKey = order.receiptPresignedUrl ?? order.id;
       if (!receiptBlobCache.current || receiptBlobCache.current.key !== cacheKey) {
-        const result = await downloadBankReceiptBlob(order.id);
+        const result = await downloadBoostReceiptBlob(order.id);
         receiptBlobCache.current = { key: cacheKey, ...result };
       }
       const { blob, filename } = receiptBlobCache.current;
@@ -532,47 +448,14 @@ export default function BankTransferDetailPage() {
     }
   }
 
-  async function handleGeneratePdf() {
-    if (!order) return;
-    setGeneratingPdf(true);
-    try {
-      await generateInvoicePDF({
-        id: order.id,
-        paymentMethod: "Bank Transfer",
-        planKey: order.planKey,
-        planLabel: `Elite ${PLAN_LABELS[order.planKey] ?? order.planKey} Membership`,
-        months: order.months,
-        amountCents: order.amountCents,
-        discountCents: order.discountCents,
-        currency: order.currency,
-        promoCode: order.promoCode,
-        status: order.status,
-        statusSuffix: order.status === "approved" ? "— Payment verified" : undefined,
-        createdAt: order.createdAt,
-        reviewedAt: order.reviewedAt,
-        adminNote: order.adminNote,
-        userName: order.userName,
-        userDisplayId: order.userDisplayId,
-        userEmail: order.userEmail,
-        userPhone: order.userPhone,
-        userGender: order.userGender,
-      });
-    } catch {
-      toast({ type: "error", title: "Failed to generate PDF" });
-    } finally {
-      setGeneratingPdf(false);
-    }
-  }
-
   function handleReceiptReplaced(newPresignedUrl: string) {
     receiptBlobCache.current = null;
-    setOrder((prev) => prev ? { ...prev, receiptPresignedUrl: newPresignedUrl } : prev);
+    setOrder((prev) => prev ? { ...prev, receiptPresignedUrl: newPresignedUrl, receiptKey: newPresignedUrl } : prev);
   }
 
   if (loading) {
     return (
       <div className="animate-pulse">
-        {/* Header */}
         <div className="flex items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 rounded-xl bg-[#F0F0F0]" />
@@ -586,14 +469,12 @@ export default function BankTransferDetailPage() {
             <div className="h-8 w-8 rounded-xl bg-[#F0F0F0]" />
           </div>
         </div>
-        {/* Summary strip */}
         <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5 mb-5">
           <div className="flex items-center justify-between">
             <div className="h-5 w-20 rounded-full bg-[#F0F0F0]" />
             <div className="h-7 w-28 rounded bg-[#F0F0F0]" />
           </div>
         </div>
-        {/* Body grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-5">
             {[80, 120, 60].map((h, i) => (
@@ -631,32 +512,31 @@ export default function BankTransferDetailPage() {
     );
   }
 
-  const net = order.amountCents - order.discountCents;
+  const net = order.amountLkr - order.discountLkr;
 
   return (
     <div>
-      {/* Header — matches userId page style */}
+      {/* Header */}
       <div className="mb-5">
         <div className="flex items-center justify-between gap-4 mb-0">
           <div className="flex items-center gap-4 min-w-0">
             <button
               type="button"
-              onClick={() => router.push("/bank-transfers")}
+              onClick={() => router.push("/business-transfers")}
               className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-xl border border-[#E6E6E6] text-[#555] hover:border-[#B31B38] hover:bg-white hover:text-[#B31B38] transition-colors shrink-0"
-              aria-label="Back to bank transfers"
+              aria-label="Back to business transfers"
             >
               <BackArrowIcon className="w-4 h-4" />
             </button>
             <div className="min-w-0">
-              <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222] leading-[150%] truncate">
-                {order.userName ?? "—"}
+              <h1 className="text-[18px] sm:text-[22px] font-semibold text-[#222] leading-tight truncate">
+                {order.businessName ?? "—"}
               </h1>
-              <p className="text-[13px] text-[#888]">{order.userDisplayId} · Elite {PLAN_LABELS[order.planKey] ?? order.planKey}</p>
+              <p className="text-[13px] text-[#888]">@{order.username ?? "—"} · Business Boost</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button disabled={generatingPdf} white className="!py-2" text={generatingPdf ? "Generating…" : "Invoice PDF"} iconLeft={<DownloadIcon className="w-5 h-5" />} onPress={handleGeneratePdf} />
-            {/* 3-dot menu */}
             <div className="relative shrink-0">
               <button
                 type="button"
@@ -692,10 +572,10 @@ export default function BankTransferDetailPage() {
             <span className="text-[14px] md:text-[16px] text-[#888]">Submitted {fmtDate(order.createdAt)}</span>
           </div>
           <div className="text-right">
-            <p className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#0A0A0A]">{fmtAmount(net, order.currency)}</p>
-            {order.discountCents > 0 && (
+            <p className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#0A0A0A]">{fmtLkr(net)}</p>
+            {order.discountLkr > 0 && (
               <p className="text-[14px] md:text-[16px] text-[#2E7D32]">
-                Saved {fmtAmount(order.discountCents, order.currency)}{order.promoCode ? ` · ${order.promoCode}` : ""}
+                Saved {fmtLkr(order.discountLkr)}{order.promoCode ? ` · ${order.promoCode}` : ""}
               </p>
             )}
           </div>
@@ -703,7 +583,7 @@ export default function BankTransferDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-        {/* Left — invoice details */}
+        {/* Left — details */}
         <div className="lg:col-span-2 space-y-4 md:space-y-5">
 
           {/* Payment breakdown */}
@@ -719,12 +599,12 @@ export default function BankTransferDetailPage() {
               <tbody>
                 <tr className="border-b border-[#F8F8F8]">
                   <td className="py-3">
-                    <div className="font-semibold text-[#0A0A0A]">Elite {PLAN_LABELS[order.planKey] ?? order.planKey} Membership</div>
-                    <div className="text-[13px] text-[#888]">{order.months} month{order.months !== 1 ? "s" : ""} · Bank transfer</div>
+                    <div className="font-semibold text-[#0A0A0A]">Business Boost</div>
+                    <div className="text-[13px] text-[#888]">1 month · Bank transfer</div>
                   </td>
-                  <td className="py-3 text-right font-medium">{fmtAmount(order.amountCents, order.currency)}</td>
+                  <td className="py-3 text-right font-medium">{fmtLkr(order.amountLkr)}</td>
                 </tr>
-                {order.discountCents > 0 && (
+                {order.discountLkr > 0 && (
                   <tr className="border-b border-[#F8F8F8]">
                     <td className="py-3 text-[#2E7D32]">
                       Discount
@@ -732,29 +612,27 @@ export default function BankTransferDetailPage() {
                         <span className="text-[11px] sm:text-[12px] md:text-[13px] bg-[#F0FDF4] px-2.5 py-0.5 rounded-full ml-2">{order.promoCode}</span>
                       )}
                     </td>
-                    <td className="py-3 text-right text-[#2E7D32] font-medium">− {fmtAmount(order.discountCents, order.currency)}</td>
+                    <td className="py-3 text-right text-[#2E7D32] font-medium">− {fmtLkr(order.discountLkr)}</td>
                   </tr>
                 )}
               </tbody>
               <tfoot>
                 <tr>
-                  <td className="pt-3 font-semibold text-[14px] s:text-[1spx] md:text-[16px]">Total charged</td>
-                  <td className="pt-3 text-right font-bold text-[15px]">{fmtAmount(net, order.currency)}</td>
+                  <td className="pt-3 font-semibold text-[14px] sm:text-[15px] md:text-[16px]">Total charged</td>
+                  <td className="pt-3 text-right font-bold text-[15px]">{fmtLkr(net)}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
 
-          {/* Customer details */}
+          {/* Business details */}
           <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
-            <h3 className="text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-3">Customer</h3>
+            <h3 className="text-[14px] sm:text-[15px] md:text-[16px] font-semibold text-[#888] uppercase tracking-wide mb-3">Business</h3>
             <dl className="space-y-2 text-[14px]">
               {([
-                ["Full name", order.userName],
-                ["Inai ID", order.userDisplayId],
-                ["Email", order.userEmail],
-                ["Phone", order.userPhone],
-                ["Gender", order.userGender ? order.userGender.charAt(0).toUpperCase() + order.userGender.slice(1) : null],
+                ["Business name", order.businessName],
+                ["Username", order.username ? `@${order.username}` : null],
+                ["WhatsApp", order.phone ?? null],
               ] as [string, string | null | undefined][]).map(([label, value]) =>
                 value ? (
                   <div key={label} className="flex justify-between gap-4">
@@ -765,7 +643,6 @@ export default function BankTransferDetailPage() {
               )}
             </dl>
           </div>
-
 
           {/* Receipt */}
           <div className="bg-white rounded-2xl border border-[#EAEAEA] p-4 sm:p-5">
@@ -791,7 +668,7 @@ export default function BankTransferDetailPage() {
 
         {/* Right — review */}
         <div className="lg:col-span-1">
-          <ReviewPanel order={order} onDone={() => router.push("/bank-transfers")} />
+          <ReviewPanel order={order} onDone={() => router.push("/business-transfers")} />
         </div>
       </div>
 
