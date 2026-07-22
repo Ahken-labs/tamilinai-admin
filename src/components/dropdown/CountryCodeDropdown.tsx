@@ -52,13 +52,13 @@ export default function CountryCodeDropdown({ value, onChange }: Props) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`h-[40px] px-3 rounded-[10px] border bg-[#FAFAFA]
-          text-[14px] text-[#0A0A0A] outline-none transition-colors cursor-pointer
+        className={`h-[40px] px-3 rounded-[10px] border bg-[#F2F2F2]
+          text-[14px] sm:text-[15px] md:text-[16px] text-[#222] outline-none transition-colors cursor-pointer
           flex items-center justify-between gap-2 w-full
-          ${open ? "border-[#B31B38]" : "border-[#EBEBEB] hover:border-[#CCCCCC]"}`}
+          ${open ? "border-[#B31B38]" : "border-[#F2F2F2] hover:border-[#CCCCCC]"}`}
       >
         <span className="font-medium text-[#B31B38]">{value}</span>
-        <span className="text-[12px] text-[#999] truncate flex-1 text-left ml-1.5">
+        <span className="text-[14px] text-[#999] truncate flex-1 text-left ml-1.5">
           {findCountryName(value)}
         </span>
         <svg

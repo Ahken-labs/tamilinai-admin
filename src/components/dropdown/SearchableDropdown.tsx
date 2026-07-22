@@ -72,13 +72,13 @@ export default function SearchableDropdown({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`h-[40px] px-3 rounded-[10px] border bg-[#FAFAFA] text-[14px] outline-none
+        className={`h-[40px] px-3 rounded-[10px] border bg-[#F2F2F2] text-[14px] outline-none
           transition-colors cursor-pointer flex items-center gap-2 w-full
-          ${open ? "border-[#B31B38]" : "border-[#EBEBEB] hover:border-[#CCCCCC]"}`}
+          ${open ? "border-[#B31B38]" : "border-[#F2F2F2] hover:border-[#CCCCCC]"}`}
       >
         <span
-          className={`truncate flex-1 text-left text-[14px] ${
-            value ? "text-[#0A0A0A]" : "text-[#BBBBBB]"
+          className={`truncate flex-1 text-left text-[14px] sm:text-[15px] md:text-[16px] ${
+            value ? "text-[#222]" : "text-[#BBBBBB]"
           }`}
         >
           {value ? selectedLabel : placeholder}
@@ -134,8 +134,8 @@ export default function SearchableDropdown({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search…"
-              className="w-full px-3 py-1.5 rounded-[8px] bg-[#F5F5F5]
-                text-[14px] text-[#222] placeholder:text-[#AAAAAA] outline-none"
+              className="w-full px-3 py-1.5 rounded-[12px] bg-[#F2F2F2]
+                text-[14px] sm:text-[15px] md:text-[16px] text-[#222] placeholder:text-[#AAAAAA] outline-none"
             />
           </div>
 
@@ -154,7 +154,7 @@ export default function SearchableDropdown({
                         key={o.value}
                         type="button"
                         onClick={() => { onChange(o.value); setOpen(false); }}
-                        className={`flex w-full items-center px-4 py-2 text-[14px] text-left transition-colors
+                        className={`flex w-full items-center px-4 py-2 text-[14px] sm:text-[15px] md:text-[16px] text-left transition-colors
                           ${selected ? "bg-[#FFF0F3] text-[#B31B38] font-medium" : "text-[#222] hover:bg-[#F5F5F5]"}`}
                       >
                         {o.label}

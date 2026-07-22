@@ -117,10 +117,10 @@ function Input({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`h-[40px] px-3 rounded-[10px] border bg-[#FAFAFA]
-          text-[14px] text-[#0A0A0A] placeholder:text-[#BBBBBB] outline-none
+        className={`h-[40px] px-3 rounded-[12px] border bg-[#F2F2F2]
+          text-[14px] sm:text-[15px] md:text-[16px] text-[#222] placeholder:text-[#BBBBBB] outline-none
           focus:border-[#B31B38] transition-colors
-          ${error ? "border-[#B31B38]" : "border-[#EBEBEB]"}`}
+          ${error ? "border-[#B31B38]" : "border-[#F2F2F2]"}`}
       />
       {error && <p className="text-[12px] text-[#B31B38]">{error}</p>}
     </div>
@@ -575,8 +575,8 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             onChange={(e) => set("aboutMe", e.target.value)}
             rows={3}
             placeholder="Write a short bio…"
-            className="px-3 py-2.5 rounded-[10px] border border-[#EBEBEB] bg-[#FAFAFA]
-              text-[14px] text-[#0A0A0A] placeholder:text-[#BBBBBB] outline-none
+            className="px-3 py-2.5 rounded-[12px] border border-[#F2F2F2] bg-[#F2F2F2]
+              text-[14px] sm:text-[15px] md:text-[16px] text-[#222] placeholder:text-[#BBBBBB] outline-none
               focus:border-[#B31B38] transition-colors resize-none"
           />
         </FieldRow>
