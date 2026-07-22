@@ -896,7 +896,7 @@ export default function SeededPage() {
 
         <div className="flex items-center justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">
+            <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222]">
               Profiles
             </h1>
             <p className="text-[12px] text-[#AAAAAA] mt-1">

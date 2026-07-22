@@ -138,7 +138,7 @@ export default function BankTransfersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[20px] md:text-[24px] font-bold text-[#0A0A0A]">Bank Transfers</h1>
+        <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222]">Bank Transfers</h1>
         {orders.length > 0 && (
           <Button white className="!py-2" text="Export Excel" iconLeft={<DownloadExcelIcon className="w-5 h-5" />} onPress={handleExport} />
         )}

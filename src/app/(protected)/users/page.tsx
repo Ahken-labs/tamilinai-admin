@@ -754,7 +754,7 @@ export default function UsersPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">User Management</h1>
+        <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222]">User Management</h1>
         {isInactiveTab && exportFn && (
           <Button white className="!py-2" text="Export Excel" iconLeft={<DownloadExcelIcon className="w-5 h-5" />} onPress={exportFn} />
         )}

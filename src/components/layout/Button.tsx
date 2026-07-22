@@ -100,7 +100,7 @@ export default function Button({
             bg-[#B31B38]
             hover:bg-[#8E162D]
             active:bg-[#6F1023]
-            disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none
+            disabled:bg-[#525252] disabled:cursor-not-allowed disabled:pointer-events-none
         `;
     }
 

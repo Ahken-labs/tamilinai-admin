@@ -206,7 +206,7 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
-        <h1 className="text-[20px] sm:text-[22px] font-bold text-[#0A0A0A]">Notifications</h1>
+        <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222]">Notifications</h1>
         {tab === "history" && (
           <div className="relative">
             {deleteMode ? (

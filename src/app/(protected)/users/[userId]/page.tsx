@@ -55,8 +55,8 @@ function CopyIdButton({ userId }: { userId: string }) {
 type EliteUI = { label: string; bg: string; color: string; iconFill: string; Icon: React.ComponentType<{ className?: string; fill?: string }> };
 const ELITE_PLAN_BADGE: Record<string, EliteUI> = {
   basic: { label: "Elite basic", bg: "#FFDED3", color: "#725E4C", iconFill: "#725E4C", Icon: EliteCrownIcon },
-  pro:   { label: "Elite pro",   bg: "#FFDED3", color: "#B31B38", iconFill: "#B31B38", Icon: EliteProIcon },
-  max:   { label: "Elite VIP",   bg: "#222222", color: "#FFDED3", iconFill: "#FFDED3", Icon: EliteVIPIcon },
+  pro: { label: "Elite pro", bg: "#FFDED3", color: "#B31B38", iconFill: "#B31B38", Icon: EliteProIcon },
+  max: { label: "Elite VIP", bg: "#222222", color: "#FFDED3", iconFill: "#FFDED3", Icon: EliteVIPIcon },
 };
 function EliteBadge({ planKey }: { planKey?: string | null }) {
   const ui = ELITE_PLAN_BADGE[planKey ?? ""] ?? ELITE_PLAN_BADGE.basic;
@@ -101,8 +101,8 @@ function Badge({ label, color }: { label: string; color: "green" | "red" | "oran
 
   const icon =
     label === "Verified" ? <VerifiedIcon className="w-5 h-5 shrink-0" /> :
-        label === "Complete" ? <svg viewBox="0 0 12 12" fill="none" className="w-3.5 h-3.5 shrink-0"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> :
-          null;
+      label === "Complete" ? <svg viewBox="0 0 12 12" fill="none" className="w-3.5 h-3.5 shrink-0"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> :
+        null;
 
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[14px] font-semibold ${cls}`}>
@@ -131,8 +131,8 @@ function EliteGrantModal({ userName, onClose, onGrant }: {
 
   const PLAN_OPTIONS: { value: "basic" | "pro" | "max"; label: string; months: string }[] = [
     { value: "basic", label: "Elite Basic", months: "3 months" },
-    { value: "pro",   label: "Elite Pro",   months: "6 months" },
-    { value: "max",   label: "Elite VIP",   months: "10 months" },
+    { value: "pro", label: "Elite Pro", months: "6 months" },
+    { value: "max", label: "Elite VIP", months: "10 months" },
   ];
 
   function handleContinue() {
@@ -434,7 +434,7 @@ export default function UserDetailPage() {
             >
               <BackArrowIcon className="w-4.5 h-4.5" />
             </button>
-            <h1 className="text-[18px] sm:text-[22px] font-semibold text-[#222] leading-tight truncate">{user.name}</h1>
+            <h1 className="text-[18px] sm:text-[20px] md:text-[22px] font-bold text-[#222] leading-[150%] truncate">{user.name}</h1>
           </div>
           {/* 3-dots menu */}
           <div className="relative shrink-0">
